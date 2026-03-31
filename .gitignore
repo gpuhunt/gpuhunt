@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude session state
+.claude/
+
+# SQLite WAL/SHM temp files (checkpoint before commit)
+*.db-shm
+*.db-wal

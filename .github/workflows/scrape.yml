@@ -1,0 +1,45 @@
+name: Scrape providers
+
+on:
+  schedule:
+    # Every 6 hours
+    - cron: "0 */6 * * *"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run scrapers
+        run: npm run scrape
+
+      - name: Checkpoint SQLite WAL
+        run: |
+          node -e "
+            const Database = require('better-sqlite3');
+            const db = new Database('src/data/gpuhunt.db');
+            db.pragma('wal_checkpoint(FULL)');
+            db.close();
+            console.log('WAL checkpoint complete');
+          "
+
+      - name: Commit updated database
+        run: |
+          git config --global user.name "GPUHunt Bot"
+          git config --global user.email "support@gpu-hunt.com"
+          git add src/data/gpuhunt.db
+          git diff --staged --quiet || git commit -m "chore: update server data [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push

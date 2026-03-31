@@ -1,0 +1,210 @@
+import Database from "better-sqlite3";
+import path from "path";
+import { Server, ServerWithProvider, ServerFilters, Provider } from "./types";
+
+const DB_PATH = path.join(process.cwd(), "src", "data", "gpuhunt.db");
+
+let _db: Database.Database | null = null;
+
+export function getDb(): Database.Database {
+  if (!_db) {
+    _db = new Database(DB_PATH);
+    _db.pragma("journal_mode = WAL");
+    _db.pragma("foreign_keys = ON");
+  }
+  return _db;
+}
+
+export function getProviders(): Provider[] {
+  const db = getDb();
+  return db.prepare("SELECT * FROM providers ORDER BY name").all() as Provider[];
+}
+
+export function getProviderBySlug(slug: string): Provider | undefined {
+  const db = getDb();
+  return db
+    .prepare("SELECT * FROM providers WHERE slug = ?")
+    .get(slug) as Provider | undefined;
+}
+
+export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
+  const db = getDb();
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (filters.gpu_model) {
+    conditions.push("s.gpu_model = ?");
+    params.push(filters.gpu_model);
+  }
+  if (filters.provider) {
+    conditions.push("p.slug = ?");
+    params.push(filters.provider);
+  }
+  if (filters.min_price !== undefined) {
+    conditions.push("s.price_monthly >= ?");
+    params.push(filters.min_price);
+  }
+  if (filters.max_price !== undefined) {
+    conditions.push("s.price_monthly <= ?");
+    params.push(filters.max_price);
+  }
+  if (filters.min_ram !== undefined) {
+    conditions.push("s.ram_gb >= ?");
+    params.push(filters.min_ram);
+  }
+  if (filters.min_gpu_vram !== undefined) {
+    conditions.push("s.gpu_vram_gb >= ?");
+    params.push(filters.min_gpu_vram);
+  }
+  if (filters.min_gpu_count !== undefined) {
+    conditions.push("s.gpu_count >= ?");
+    params.push(filters.min_gpu_count);
+  }
+  if (filters.available_only !== false) {
+    conditions.push("s.available = 1");
+  }
+  if (filters.search) {
+    conditions.push(
+      "(s.name LIKE ? OR s.gpu_model LIKE ? OR s.cpu LIKE ? OR p.name LIKE ?)"
+    );
+    const term = `%${filters.search}%`;
+    params.push(term, term, term, term);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const sortCol = filters.sort_by || "price_monthly";
+  const sortDir = filters.sort_order || "asc";
+  const limit = filters.limit || 100;
+  const offset = filters.offset || 0;
+
+  const sql = `
+    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+    FROM servers s
+    JOIN providers p ON s.provider_id = p.id
+    ${where}
+    ORDER BY s.${sortCol} ${sortDir} NULLS LAST
+    LIMIT ? OFFSET ?
+  `;
+
+  params.push(limit, offset);
+  return db.prepare(sql).all(...params) as ServerWithProvider[];
+}
+
+export function getServerCount(filters: ServerFilters = {}): number {
+  const db = getDb();
+  const conditions: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (filters.gpu_model) {
+    conditions.push("s.gpu_model = ?");
+    params.push(filters.gpu_model);
+  }
+  if (filters.provider) {
+    conditions.push("p.slug = ?");
+    params.push(filters.provider);
+  }
+  if (filters.min_price !== undefined) {
+    conditions.push("s.price_monthly >= ?");
+    params.push(filters.min_price);
+  }
+  if (filters.max_price !== undefined) {
+    conditions.push("s.price_monthly <= ?");
+    params.push(filters.max_price);
+  }
+  if (filters.min_ram !== undefined) {
+    conditions.push("s.ram_gb >= ?");
+    params.push(filters.min_ram);
+  }
+  if (filters.min_gpu_count !== undefined) {
+    conditions.push("s.gpu_count >= ?");
+    params.push(filters.min_gpu_count);
+  }
+  if (filters.available_only !== false) {
+    conditions.push("s.available = 1");
+  }
+  if (filters.search) {
+    conditions.push(
+      "(s.name LIKE ? OR s.gpu_model LIKE ? OR s.cpu LIKE ? OR p.name LIKE ?)"
+    );
+    const term = `%${filters.search}%`;
+    params.push(term, term, term, term);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const sql = `
+    SELECT COUNT(*) as count FROM servers s
+    JOIN providers p ON s.provider_id = p.id
+    ${where}
+  `;
+
+  const row = db.prepare(sql).get(...params) as { count: number };
+  return row.count;
+}
+
+export function getGpuModels(): { gpu_model: string; count: number }[] {
+  const db = getDb();
+  return db
+    .prepare(
+      `SELECT gpu_model, COUNT(*) as count FROM servers
+       WHERE gpu_model IS NOT NULL AND available = 1
+       GROUP BY gpu_model ORDER BY count DESC`
+    )
+    .all() as { gpu_model: string; count: number }[];
+}
+
+export function getServersByGpu(gpuModel: string): ServerWithProvider[] {
+  return getServers({ gpu_model: gpuModel, available_only: true, sort_by: "price_monthly" });
+}
+
+export function getServersByProvider(providerSlug: string): ServerWithProvider[] {
+  return getServers({ provider: providerSlug, available_only: false, sort_by: "price_monthly" });
+}
+
+export function upsertServer(server: Omit<Server, "created_at" | "updated_at">): void {
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  const stmt = db.prepare(`
+    INSERT INTO servers (id, provider_id, name, cpu, cpu_cores, cpu_threads, ram_gb,
+      storage_type, storage_gb, gpu_model, gpu_count, gpu_vram_gb, bandwidth_tb,
+      price_monthly, price_hourly, currency, location, available, url, raw_data,
+      scraped_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name = excluded.name,
+      cpu = excluded.cpu,
+      cpu_cores = excluded.cpu_cores,
+      cpu_threads = excluded.cpu_threads,
+      ram_gb = excluded.ram_gb,
+      storage_type = excluded.storage_type,
+      storage_gb = excluded.storage_gb,
+      gpu_model = excluded.gpu_model,
+      gpu_count = excluded.gpu_count,
+      gpu_vram_gb = excluded.gpu_vram_gb,
+      bandwidth_tb = excluded.bandwidth_tb,
+      price_monthly = excluded.price_monthly,
+      price_hourly = excluded.price_hourly,
+      currency = excluded.currency,
+      available = excluded.available,
+      url = excluded.url,
+      raw_data = excluded.raw_data,
+      scraped_at = excluded.scraped_at,
+      updated_at = ?
+  `);
+
+  stmt.run(
+    server.id, server.provider_id, server.name, server.cpu, server.cpu_cores,
+    server.cpu_threads, server.ram_gb, server.storage_type, server.storage_gb,
+    server.gpu_model, server.gpu_count, server.gpu_vram_gb, server.bandwidth_tb,
+    server.price_monthly, server.price_hourly, server.currency, server.location,
+    server.available, server.url, server.raw_data, server.scraped_at, now, now, now
+  );
+}
+
+export function recordPriceHistory(serverId: string, priceMonthly: number | null, priceHourly: number | null, available: number): void {
+  const db = getDb();
+  db.prepare(
+    `INSERT INTO price_history (server_id, price_monthly, price_hourly, available, recorded_at)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(serverId, priceMonthly, priceHourly, available, new Date().toISOString());
+}
