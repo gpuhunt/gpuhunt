@@ -57,6 +57,11 @@ export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
     conditions.push("p.slug = ?");
     params.push(filters.provider);
   }
+  if (filters.exclude_providers && filters.exclude_providers.length > 0) {
+    const placeholders = filters.exclude_providers.map(() => "?").join(", ");
+    conditions.push(`p.slug NOT IN (${placeholders})`);
+    params.push(...filters.exclude_providers);
+  }
   if (filters.min_price !== undefined) {
     conditions.push("s.price_monthly >= ?");
     params.push(filters.min_price);
@@ -120,6 +125,11 @@ export function getServerCount(filters: ServerFilters = {}): number {
     conditions.push("p.slug = ?");
     params.push(filters.provider);
   }
+  if (filters.exclude_providers && filters.exclude_providers.length > 0) {
+    const placeholders = filters.exclude_providers.map(() => "?").join(", ");
+    conditions.push(`p.slug NOT IN (${placeholders})`);
+    params.push(...filters.exclude_providers);
+  }
   if (filters.min_price !== undefined) {
     conditions.push("s.price_monthly >= ?");
     params.push(filters.min_price);
@@ -156,6 +166,38 @@ export function getServerCount(filters: ServerFilters = {}): number {
 
   const row = db.prepare(sql).get(...params) as { count: number };
   return row.count;
+}
+
+// Canonical GPU families for homepage Browse by GPU section.
+// Each family uses a prefix search so "NVIDIA H100" matches SXM5, PCIe, NVL, etc.
+export const GPU_FAMILIES = [
+  { family: "NVIDIA B200",    label: "B200",     badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA H200",    label: "H200",     badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA H100",    label: "H100",     badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA A100",    label: "A100",     badge: "badge-cyan",   tier: "flagship" },
+  { family: "NVIDIA L40S",    label: "L40S",     badge: "badge-cyan",   tier: "pro"      },
+  { family: "NVIDIA L40",     label: "L40",      badge: "badge-cyan",   tier: "pro"      },
+  { family: "NVIDIA A40",     label: "A40",      badge: "badge-indigo", tier: "pro"      },
+  { family: "NVIDIA A6000",   label: "A6000",    badge: "badge-indigo", tier: "pro"      },
+  { family: "NVIDIA RTX 4090",label: "RTX 4090", badge: "badge-amber",  tier: "consumer" },
+  { family: "NVIDIA RTX 3090",label: "RTX 3090", badge: "badge-amber",  tier: "consumer" },
+  { family: "NVIDIA RTX 4080",label: "RTX 4080", badge: "badge-amber",  tier: "consumer" },
+  { family: "NVIDIA V100",    label: "V100",     badge: "badge-muted",  tier: "legacy"   },
+  { family: "NVIDIA A10",     label: "A10",      badge: "badge-muted",  tier: "pro"      },
+  { family: "NVIDIA L4",      label: "L4",       badge: "badge-cyan",   tier: "pro"      },
+];
+
+export function getGpuFamilyCounts(): Array<typeof GPU_FAMILIES[0] & { count: number; cheapest: number | null }> {
+  const db = getDb();
+  return GPU_FAMILIES.map((fam) => {
+    const row = db.prepare(
+      `SELECT COUNT(*) as count, MIN(price_hourly) as cheapest
+       FROM servers s
+       JOIN providers p ON s.provider_id = p.id
+       WHERE s.gpu_model LIKE ? AND s.available = 1 AND s.gpu_count >= 1`
+    ).get(`${fam.family}%`) as { count: number; cheapest: number | null };
+    return { ...fam, count: row.count, cheapest: row.cheapest };
+  }).filter((f) => f.count > 0);
 }
 
 export function getGpuModels(): { gpu_model: string; count: number }[] {

@@ -44,6 +44,7 @@ export interface ServerWithProvider extends Server {
 export interface ServerFilters {
   gpu_model?: string;
   provider?: string;
+  exclude_providers?: string[];
   min_price?: number;
   max_price?: number;
   min_ram?: number;
