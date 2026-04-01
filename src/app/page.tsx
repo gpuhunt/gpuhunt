@@ -27,14 +27,10 @@ export default function HomePage() {
     limit: 6,
   });
 
-  // Marketplace / spot deals — separate section
-  const spotDeals    = getServers({
-    min_gpu_count: 1,
-    sort_by: "price_monthly",
-    provider: "vast",
-    available_only: true,
-    limit: 3,
-  });
+  // Spot section: cheapest GPU deal from each marketplace provider
+  const spotDeals = MARKETPLACE_PROVIDERS.flatMap((slug) =>
+    getServers({ provider: slug, min_gpu_count: 1, sort_by: "price_hourly", available_only: true, limit: 1 })
+  ).filter(Boolean);
 
   // Ticker: mix of cloud deals
   const ticker = getServers({
@@ -222,11 +218,11 @@ export default function HomePage() {
                   <span className="badge badge-amber" style={{ fontSize: "9px" }}>SPOT</span>
                 </div>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Peer marketplace (Vast.ai) — lowest prices, variable availability. Great for flexible workloads.
+                  Lowest prices on peer marketplaces — variable availability, great for flexible workloads.
                 </p>
               </div>
-              <a href="/servers?min_gpu_count=1&provider=vast" className="text-xs font-medium whitespace-nowrap" style={{ color: "var(--accent-light)" }}>
-                See all Vast.ai →
+              <a href="/servers?min_gpu_count=1" className="text-xs font-medium whitespace-nowrap" style={{ color: "var(--accent-light)" }}>
+                See all spot →
               </a>
             </div>
 
@@ -238,11 +234,13 @@ export default function HomePage() {
                   style={{ borderLeft: "2px solid var(--amber)" }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>Vast.ai</span>
+                    <a href={`/provider/${s.provider_slug}`} className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: "var(--amber)" }}>
+                      {s.provider_name}
+                    </a>
                     {s.location && <span className="text-xs" style={{ color: "var(--text-muted)" }}>{s.location}</span>}
                   </div>
                   <div className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
-                    {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "")}
+                    {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD Instinct ", "")}
                     {s.gpu_vram_gb ? ` ${s.gpu_vram_gb}GB` : ""}
                   </div>
                   <div className="flex items-center justify-between">

@@ -52,7 +52,7 @@ export interface ServerFilters {
   min_gpu_vram?: number;
   min_gpu_count?: number;
   available_only?: boolean;
-  sort_by?: "price_monthly" | "gpu_count" | "ram_gb" | "gpu_vram_gb";
+  sort_by?: "price_monthly" | "price_hourly" | "gpu_count" | "ram_gb" | "gpu_vram_gb";
   sort_order?: "asc" | "desc";
   search?: string;
   limit?: number;

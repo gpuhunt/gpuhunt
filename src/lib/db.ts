@@ -339,17 +339,38 @@ export function getBestDealsPerFamily(opts: {
 
   const all = db.prepare(sql).all(...params) as ServerWithProvider[];
 
-  // One best deal per GPU family — deduplicate using GPU_FAMILIES prefix list
-  const seen = new Set<string>();
+  // Deduplicate by BOTH GPU family AND provider slug.
+  // First pass: pick cheapest per GPU family (no provider constraint).
+  // If a provider already has a card, skip and use the next cheapest for that GPU family.
+  // This ensures every card shows a different GPU type AND a different provider.
+  const seenFamilies = new Set<string>();
+  const seenProviders = new Set<string>();
   const deduped: ServerWithProvider[] = [];
 
+  // Two-pass approach:
+  // Pass 1: one per GPU family, also enforce one per provider (strict diversity)
   for (const server of all) {
     const family = GPU_FAMILIES.find((f) => server.gpu_model!.startsWith(f.family));
-    const key = family ? family.family : server.gpu_model!;
-    if (!seen.has(key)) {
-      seen.add(key);
-      deduped.push(server);
+    const familyKey = family ? family.family : server.gpu_model!;
+    if (seenFamilies.has(familyKey)) continue;
+    if (seenProviders.has(server.provider_slug)) continue;
+    seenFamilies.add(familyKey);
+    seenProviders.add(server.provider_slug);
+    deduped.push(server);
+    if (deduped.length >= limit) break;
+  }
+
+  // Pass 2: if we didn't get enough (e.g. not enough providers with different GPUs),
+  // fill remaining slots allowing provider repeats but still no GPU family repeats
+  if (deduped.length < limit) {
+    for (const server of all) {
       if (deduped.length >= limit) break;
+      if (deduped.some((d) => d.id === server.id)) continue;
+      const family = GPU_FAMILIES.find((f) => server.gpu_model!.startsWith(f.family));
+      const familyKey = family ? family.family : server.gpu_model!;
+      if (seenFamilies.has(familyKey)) continue;
+      seenFamilies.add(familyKey);
+      deduped.push(server);
     }
   }
 

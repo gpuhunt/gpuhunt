@@ -68,9 +68,9 @@ export default function GeoDeals({ fallback, totalGpuCount }: Props) {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h2 className="text-xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>
-                Best GPU Deals
+                Live GPU Snapshot
               </h2>
               {regionInfo && !loading && (
                 <span
@@ -81,7 +81,7 @@ export default function GeoDeals({ fallback, totalGpuCount }: Props) {
                     color: "var(--text-muted)",
                   }}
                 >
-                  {regionInfo.flag} Near you in {regionInfo.label}
+                  {regionInfo.flag} {regionInfo.label}
                 </span>
               )}
               {loading && (
@@ -90,12 +90,12 @@ export default function GeoDeals({ fallback, totalGpuCount }: Props) {
                   style={{ background: "var(--surface)", color: "var(--text-muted)" }}
                 >
                   <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "var(--text-muted)" }} />
-                  Detecting location…
+                  Locating…
                 </span>
               )}
             </div>
             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-              One best deal per GPU type — different providers, different hardware
+              Cheapest available price for each GPU type · one provider per card · sorted by $/hr
             </p>
           </div>
           <a href="/servers?min_gpu_count=1" className="text-xs font-medium whitespace-nowrap" style={{ color: "var(--accent-light)" }}>
