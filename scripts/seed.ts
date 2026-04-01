@@ -96,6 +96,46 @@ const providers = [
     affiliate_url: "https://salad.com/gpu-pricing?utm_source=gpuhunt",
     description: "Distributed GPU cloud leveraging consumer gaming GPUs — some of the lowest prices for RTX 4090.",
   },
+  {
+    id: "coreweave",
+    name: "CoreWeave",
+    slug: "coreweave",
+    website: "https://www.coreweave.com",
+    affiliate_url: "https://www.coreweave.com/pricing",
+    description: "High-performance GPU cloud built for AI/ML. Offers H100, H200, B200, and A100 across US datacenters.",
+  },
+  {
+    id: "latitude",
+    name: "Latitude.sh",
+    slug: "latitude",
+    website: "https://www.latitude.sh",
+    affiliate_url: "https://www.latitude.sh/pricing?utm_source=gpuhunt",
+    description: "Bare metal GPU servers with H100 and A100 across US and EU regions. Competitive hourly pricing.",
+  },
+  {
+    id: "paperspace",
+    name: "Paperspace",
+    slug: "paperspace",
+    website: "https://www.paperspace.com",
+    affiliate_url: "https://www.paperspace.com/pricing?utm_source=gpuhunt",
+    description: "DigitalOcean's GPU cloud platform offering A100, RTX A6000, A40, and V100 GPU instances.",
+  },
+  {
+    id: "hyperstack",
+    name: "Hyperstack",
+    slug: "hyperstack",
+    website: "https://www.hyperstack.cloud",
+    affiliate_url: "https://www.hyperstack.cloud/gpu-pricing?utm_source=gpuhunt",
+    description: "GPU cloud provider with H100, H200, A100, and L40S instances across US and EU regions.",
+  },
+  {
+    id: "jarvislabs",
+    name: "Jarvis Labs",
+    slug: "jarvislabs",
+    website: "https://jarvislabs.ai",
+    affiliate_url: "https://jarvislabs.ai/pricing?utm_source=gpuhunt",
+    description: "AI-focused GPU cloud with H100, H200, A100, and RTX 6000 instances. Competitive multi-GPU pricing.",
+  },
 ];
 
 const stmt = db.prepare(`

@@ -9,6 +9,11 @@ import { scrapeDatacrunch } from "./datacrunch";
 import { scrapeFluidstack } from "./fluidstack";
 import { scrapeGenesis } from "./genesis";
 import { scrapeSalad } from "./salad";
+import { scrapeCoreWeave } from "./coreweave";
+import { scrapeLatitude } from "./latitude";
+import { scrapePaperspace } from "./paperspace";
+import { scrapeHyperstack } from "./hyperstack";
+import { scrapeJarvisLabs } from "./jarvislabs";
 import { ScraperResult } from "../types";
 
 export interface ScrapeAllResult {
@@ -32,6 +37,11 @@ export async function scrapeAll(): Promise<ScrapeAllResult> {
     { name: "FluidStack",    fn: scrapeFluidstack },
     { name: "Genesis Cloud", fn: scrapeGenesis    },
     { name: "Salad Cloud",   fn: scrapeSalad      },
+    { name: "CoreWeave",     fn: scrapeCoreWeave  },
+    { name: "Latitude.sh",   fn: scrapeLatitude   },
+    { name: "Paperspace",    fn: scrapePaperspace },
+    { name: "Hyperstack",    fn: scrapeHyperstack },
+    { name: "Jarvis Labs",   fn: scrapeJarvisLabs },
   ];
 
   const results: ScraperResult[] = [];
