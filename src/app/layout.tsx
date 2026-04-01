@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GPUHunt — Compare GPU & Bare Metal Server Prices",
+  title: "GPUHunt — Compare GPU Server Prices",
   description:
-    "Real-time GPU server pricing from Hetzner, RunPod, Lambda Labs, Vast.ai, TensorDock, and 10+ more providers. Find the cheapest H100, A100, or RTX 4090 server instantly.",
+    "Real-time GPU server pricing from Lambda Labs, CoreWeave, RunPod, Vast.ai, Hyperstack, and 16+ more providers. Find the cheapest H100, A100, MI300X, or RTX 4090 instantly.",
   openGraph: {
-    title: "GPUHunt — Compare GPU & Bare Metal Server Prices",
-    description: "Real-time GPU server pricing across 10+ providers. Find the best deal for AI/ML.",
+    title: "GPUHunt — Compare GPU Server Prices",
+    description: "Real-time GPU server pricing across 16+ providers. Find the best deal for AI/ML.",
     type: "website",
   },
 };
@@ -40,7 +40,7 @@ export default function RootLayout({
           }}
         >
           <span className="opacity-60 mr-2">✦</span>
-          Live pricing from 16+ providers · Updated every 6 hours · Free to use
+          Live GPU pricing from 16+ providers · Free to use
           <span className="opacity-60 ml-2">✦</span>
         </div>
 
@@ -160,8 +160,8 @@ export default function RootLayout({
               className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 text-xs"
               style={{ borderTop: "1px solid var(--border)", color: "var(--text-muted)" }}
             >
-              <span>© 2025 GPUHunt. Prices updated every 6 hours.</span>
-              <span>Not affiliated with any provider. Prices may vary.</span>
+              <span>© 2025 GPUHunt. Not affiliated with any provider.</span>
+              <span>Prices may vary. For reference only.</span>
             </div>
           </div>
         </footer>

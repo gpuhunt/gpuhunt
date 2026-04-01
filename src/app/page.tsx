@@ -87,7 +87,7 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 mb-8">
             <span className="badge badge-indigo">
               <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--green)", display: "inline-block", animation: "glow-pulse 2s ease-in-out infinite" }} />
-              Live · {providers.length} providers · Updated every 6h
+              Live · {providers.length} providers
             </span>
           </div>
 
@@ -348,7 +348,7 @@ export default function HomePage() {
           <div className="mb-8">
             <h2 className="text-xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>Covered Providers</h2>
             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-              Live pricing from {providers.length} providers, refreshed every 6 hours
+              Live pricing from {providers.length} providers
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

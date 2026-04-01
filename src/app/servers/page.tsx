@@ -71,7 +71,7 @@ export default async function ServersPage({ searchParams }: PageProps) {
           </div>
           <span className="badge badge-green">
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--green)", display: "inline-block", animation: "glow-pulse 2s ease-in-out infinite" }} />
-            Live · Refreshed 6h
+            Live
           </span>
         </div>
       </div>
