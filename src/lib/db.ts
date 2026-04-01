@@ -228,6 +228,40 @@ export function getServersByProvider(providerSlug: string): ServerWithProvider[]
   return getServers({ provider: providerSlug, available_only: false, sort_by: "price_monthly" });
 }
 
+export function getGpuPriceHistory(gpuModel: string, days = 30): Array<{ recorded_at: string; avg_price_hourly: number | null; min_price_hourly: number | null }> {
+  const db = getDb();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  return db.prepare(`
+    SELECT
+      date(ph.recorded_at) as recorded_at,
+      AVG(ph.price_hourly) as avg_price_hourly,
+      MIN(ph.price_hourly) as min_price_hourly
+    FROM price_history ph
+    JOIN servers s ON ph.server_id = s.id
+    WHERE s.gpu_model LIKE ? AND ph.price_hourly IS NOT NULL AND ph.recorded_at >= ?
+    GROUP BY date(ph.recorded_at)
+    ORDER BY recorded_at ASC
+  `).all(`${gpuModel}%`, since) as Array<{ recorded_at: string; avg_price_hourly: number | null; min_price_hourly: number | null }>;
+}
+
+export function getProviderGpuOverlap(slugA: string, slugB: string): string[] {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT DISTINCT s.gpu_model FROM servers s
+    JOIN providers p ON s.provider_id = p.id
+    WHERE p.slug = ? AND s.gpu_model IS NOT NULL AND s.available = 1
+  `).all(slugA) as { gpu_model: string }[];
+  const setA = new Set(rows.map((r) => r.gpu_model));
+
+  const rowsB = db.prepare(`
+    SELECT DISTINCT s.gpu_model FROM servers s
+    JOIN providers p ON s.provider_id = p.id
+    WHERE p.slug = ? AND s.gpu_model IS NOT NULL AND s.available = 1
+  `).all(slugB) as { gpu_model: string }[];
+
+  return rowsB.map((r) => r.gpu_model).filter((m) => setA.has(m));
+}
+
 export function upsertServer(server: Omit<Server, "created_at" | "updated_at">): void {
   const db = getDbWrite();
   const now = new Date().toISOString();

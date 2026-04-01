@@ -159,6 +159,35 @@ export default function FilterSidebar({ gpuModels, providers }: FilterSidebarPro
           </select>
         </div>
 
+        {/* Use-case shortcuts */}
+        <div>
+          <label style={labelStyle}>By Use Case</label>
+          <div className="flex flex-col gap-1.5">
+            {[
+              { href: "/use-case/llm-training",    label: "LLM Training" },
+              { href: "/use-case/inference",        label: "Inference" },
+              { href: "/use-case/fine-tuning",      label: "Fine-Tuning" },
+              { href: "/use-case/image-generation", label: "Image Generation" },
+              { href: "/use-case/embedding",        label: "Embeddings / RAG" },
+            ].map((uc) => (
+              <a
+                key={uc.href}
+                href={uc.href}
+                className="text-xs px-3 py-2 rounded-lg transition-colors"
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text-secondary)",
+                  display: "block",
+                  textDecoration: "none",
+                }}
+              >
+                {uc.label} →
+              </a>
+            ))}
+          </div>
+        </div>
+
         {/* Active filters summary */}
         {hasFilters && (
           <div

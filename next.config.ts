@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/servers": ["./src/data/**"],
     "/api/servers": ["./src/data/**"],
+    "/api/alerts": ["./src/data/**"],
+    "/gpu/[model]": ["./src/data/**"],
+    "/provider/[slug]": ["./src/data/**"],
+    "/compare/[pair]": ["./src/data/**"],
+    "/use-case/[slug]": ["./src/data/**"],
   },
 };
 

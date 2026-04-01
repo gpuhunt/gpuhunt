@@ -1,5 +1,8 @@
-import { getServersByGpu, getGpuModels } from "@/lib/db";
+import { getServersByGpu, getGpuModels, getGpuPriceHistory } from "@/lib/db";
+import { getGpuSpec } from "@/lib/gpu-specs";
 import ServerTable from "@/components/ServerTable";
+import PriceSparkline from "@/components/PriceSparkline";
+import PriceAlertBanner from "@/components/PriceAlertBanner";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -10,9 +13,14 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { model } = await params;
   const gpuModel = decodeURIComponent(model);
+  const shortName = gpuModel.replace("NVIDIA ", "").replace("AMD Instinct ", "");
   return {
-    title: `${gpuModel} Server Pricing & Availability — GPUHunt`,
-    description: `Compare ${gpuModel} GPU server pricing across providers. Find the cheapest ${gpuModel} servers available now.`,
+    title: `${gpuModel} Rental Pricing — Compare ${shortName} Servers | GPUHunt`,
+    description: `Compare ${gpuModel} GPU server pricing across ${10}+ cloud providers. Find the cheapest ${shortName} instance available right now.`,
+    openGraph: {
+      title: `${gpuModel} GPU Rental Prices`,
+      description: `Live pricing for ${gpuModel} GPU servers across all major cloud providers.`,
+    },
   };
 }
 
@@ -29,14 +37,40 @@ export default async function GpuModelPage({ params }: PageProps) {
   if (servers.length === 0) notFound();
 
   const withPrice = servers.filter((s) => s.price_monthly != null);
-  const cheapest = withPrice[0];
+  const withHourly = servers.filter((s) => s.price_hourly != null);
+  const cheapest = withHourly.sort((a, b) => (a.price_hourly ?? 0) - (b.price_hourly ?? 0))[0];
   const mostExpensive = withPrice[withPrice.length - 1];
   const providerNames = [...new Set(servers.map((s) => s.provider_name))];
   const maxVram = Math.max(...servers.map((s) => s.gpu_vram_gb ?? 0));
   const maxGpuCount = Math.max(...servers.map((s) => s.gpu_count ?? 0));
 
+  const priceHistory = getGpuPriceHistory(gpuModel, 30);
+  const spec = getGpuSpec(gpuModel);
+
+  const shortName = gpuModel.replace("NVIDIA ", "").replace("AMD Instinct ", "");
+
+  // JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `${gpuModel} GPU Server`,
+    description: `Rent a ${gpuModel} GPU server from ${providerNames.slice(0, 3).join(", ")} and more. Starting from $${cheapest?.price_hourly?.toFixed(2) ?? "—"}/hr.`,
+    offers: withHourly.slice(0, 5).map((s) => ({
+      "@type": "Offer",
+      url: s.url,
+      price: s.price_hourly?.toFixed(4),
+      priceCurrency: s.currency,
+      seller: { "@type": "Organization", name: s.provider_name },
+    })),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>
@@ -46,17 +80,11 @@ export default async function GpuModelPage({ params }: PageProps) {
         <span style={{ color: "var(--accent)" }}>{gpuModel}</span>
       </div>
 
-      {/* GPU header card */}
-      <div
-        className="rounded-xl p-6 mb-8"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-      >
+      {/* GPU header */}
+      <div className="rounded-xl p-6 mb-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
           <div>
-            <div
-              className="text-xs font-semibold uppercase tracking-widest mb-2"
-              style={{ color: "var(--accent)" }}
-            >
+            <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--accent)" }}>
               GPU
             </div>
             <h1 className="text-2xl font-bold text-white mb-1">{gpuModel}</h1>
@@ -65,56 +93,136 @@ export default async function GpuModelPage({ params }: PageProps) {
             </p>
           </div>
 
-          {/* Stats grid */}
           <div className="flex flex-wrap gap-6 sm:gap-8 shrink-0">
             <div className="text-center">
               <div className="text-2xl font-bold text-white tabular-nums">{servers.length}</div>
-              <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                Listings
-              </div>
+              <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Listings</div>
             </div>
-            {cheapest?.price_monthly != null && (
+            {cheapest?.price_hourly != null && (
               <div className="text-center">
                 <div className="text-2xl font-bold tabular-nums" style={{ color: "var(--accent)" }}>
-                  {cheapest.currency === "EUR" ? "€" : "$"}{cheapest.price_monthly.toFixed(0)}
+                  ${cheapest.price_hourly.toFixed(2)}
                 </div>
-                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                  Cheapest /mo
-                </div>
+                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>From /hr</div>
               </div>
             )}
-            {mostExpensive?.price_monthly != null &&
-              mostExpensive.price_monthly !== cheapest?.price_monthly && (
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white tabular-nums">
-                    {mostExpensive.currency === "EUR" ? "€" : "$"}{mostExpensive.price_monthly.toFixed(0)}
-                  </div>
-                  <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                    Most /mo
-                  </div>
+            {cheapest?.price_monthly != null && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white tabular-nums">
+                  {cheapest.currency === "EUR" ? "€" : "$"}{cheapest.price_monthly.toFixed(0)}
                 </div>
-              )}
+                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>From /mo</div>
+              </div>
+            )}
             {maxVram > 0 && (
               <div className="text-center">
                 <div className="text-2xl font-bold text-white tabular-nums">{maxVram} GB</div>
-                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                  Max VRAM
-                </div>
+                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>VRAM</div>
               </div>
             )}
             {maxGpuCount > 1 && (
               <div className="text-center">
                 <div className="text-2xl font-bold text-white tabular-nums">up to {maxGpuCount}×</div>
-                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                  GPUs/server
-                </div>
+                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>GPUs/server</div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Price history sparkline */}
+        {priceHistory.length > 0 && (
+          <div className="mt-6 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
+            <div className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
+              Price trend (30 days)
+            </div>
+            <PriceSparkline data={priceHistory} width={200} height={48} />
+          </div>
+        )}
+      </div>
+
+      {/* GPU spec card */}
+      {spec && (
+        <div className="rounded-xl p-6 mb-6" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
+            Specifications
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Architecture</div>
+              <div className="text-sm font-semibold text-white">{spec.architecture}</div>
+            </div>
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>VRAM</div>
+              <div className="text-sm font-semibold text-white">{spec.vram_gb} GB {spec.vram_type}</div>
+            </div>
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Memory BW</div>
+              <div className="text-sm font-semibold text-white">{spec.vram_bandwidth_tbs} TB/s</div>
+            </div>
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>FP16 TFLOPs</div>
+              <div className="text-sm font-semibold text-white">{spec.fp16_tflops.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>TDP</div>
+              <div className="text-sm font-semibold text-white">{spec.tdp_w} W</div>
+            </div>
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>NVLink</div>
+              <div className="text-sm font-semibold" style={{ color: spec.nvlink ? "var(--green)" : "var(--text-muted)" }}>
+                {spec.nvlink ? "Yes" : "No"}
+              </div>
+            </div>
+          </div>
+          {spec.notes && (
+            <p className="mt-4 text-xs" style={{ color: "var(--text-muted)" }}>
+              {spec.notes}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {spec.use_cases.map((uc) => {
+              const ucSlug = uc.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
+              const knownSlugs: Record<string, string> = {
+                "llm-training": "llm-training",
+                "inference": "inference",
+                "fine-tuning": "fine-tuning",
+                "qlora-": "fine-tuning",
+                "image-generation": "image-generation",
+                "embeddings": "embedding",
+              };
+              const linkSlug = Object.entries(knownSlugs).find(([k]) => ucSlug.includes(k))?.[1];
+              return linkSlug ? (
+                <a key={uc} href={`/use-case/${linkSlug}`}>
+                  <span className="badge badge-cyan" style={{ fontSize: "11px" }}>{uc}</span>
+                </a>
+              ) : (
+                <span key={uc} className="badge badge-muted" style={{ fontSize: "11px" }}>{uc}</span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="mb-6">
+        <PriceAlertBanner gpuModel={gpuModel} />
       </div>
 
       <ServerTable servers={servers} />
+
+      {/* Cross-links */}
+      <div className="mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
+        <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-muted)" }}>COMPARE PROVIDERS</h3>
+        <div className="flex flex-wrap gap-2">
+          {providerNames.map((name) => {
+            const slug = servers.find((s) => s.provider_name === name)?.provider_slug;
+            return slug ? (
+              <a key={slug} href={`/provider/${slug}`} className="badge badge-muted text-xs">
+                {name} →
+              </a>
+            ) : null;
+          })}
+        </div>
+      </div>
     </div>
   );
 }

@@ -83,8 +83,9 @@ export default function RootLayout({
               {/* Nav links */}
               <div className="flex items-center gap-0.5 sm:gap-1">
                 {[
-                  { href: "/servers", label: "All Servers" },
-                  { href: "/servers?min_gpu_count=1", label: "GPU Servers" },
+                  { href: "/servers", label: "Servers" },
+                  { href: "/use-case/llm-training", label: "Use Cases" },
+                  { href: "/compare/lambda-labs-vs-runpod", label: "Compare" },
                   { href: "/api/servers", label: "API" },
                 ].map((link) => (
                   <a
@@ -149,10 +150,19 @@ export default function RootLayout({
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Developers</p>
+                <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Use Cases</p>
                 <div className="space-y-2">
-                  <a href="/api/servers" className="footer-link block text-xs transition-colors">JSON API</a>
-                  <a href="mailto:support@gpu-hunt.com" className="footer-link block text-xs transition-colors">support@gpu-hunt.com</a>
+                  {[
+                    { href: "/use-case/llm-training",    label: "LLM Training" },
+                    { href: "/use-case/inference",        label: "AI Inference" },
+                    { href: "/use-case/fine-tuning",      label: "Fine-Tuning" },
+                    { href: "/use-case/image-generation", label: "Image Generation" },
+                    { href: "/api/servers",               label: "JSON API" },
+                  ].map((l) => (
+                    <a key={l.href} href={l.href} className="footer-link block text-xs transition-colors">
+                      {l.label}
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>

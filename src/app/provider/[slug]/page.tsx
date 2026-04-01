@@ -29,6 +29,14 @@ export default async function ProviderPage({ params }: PageProps) {
 
   const servers = getServersByProvider(slug);
   const gpuServers = servers.filter((s) => s.gpu_count > 0);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: provider.name,
+    url: provider.website,
+    description: provider.description ?? `${provider.name} GPU and bare metal server pricing.`,
+  };
   const cheapest = servers
     .filter((s) => s.price_monthly != null)
     .sort((a, b) => (a.price_monthly ?? 0) - (b.price_monthly ?? 0))[0];
@@ -38,6 +46,10 @@ export default async function ProviderPage({ params }: PageProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>
