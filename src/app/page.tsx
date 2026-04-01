@@ -48,12 +48,12 @@ export default function HomePage() {
     available_only: true,
     limit: 80,
   });
-  // Group by provider, then round-robin interleave
+  // Group by provider, cap each at 3 entries, then round-robin interleave
   const tickerByProvider = tickerRaw.reduce<Record<string, typeof tickerRaw>>((acc, s) => {
     (acc[s.provider_slug] ??= []).push(s);
     return acc;
   }, {});
-  const tickerQueues = Object.values(tickerByProvider);
+  const tickerQueues = Object.values(tickerByProvider).map((q) => q.slice(0, 3));
   const ticker: typeof tickerRaw = [];
   const maxLen = Math.max(...tickerQueues.map((q) => q.length));
   for (let i = 0; i < maxLen; i++) {
