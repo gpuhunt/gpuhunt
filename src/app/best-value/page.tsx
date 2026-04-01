@@ -3,7 +3,7 @@ import ServerTable from "@/components/ServerTable";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Best Value GPU Servers — Highest FLOPS Per Dollar | GPUHunt",
+  title: "Best Value GPU Servers — Highest FLOPS Per Dollar",
   description:
     "Find the best value GPU servers for AI/ML workloads. Ranked by FP16 TFLOPS per dollar per hour — the most useful metric for training and inference cost efficiency.",
 };

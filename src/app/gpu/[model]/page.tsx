@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const gpuModel = decodeURIComponent(model);
   const shortName = gpuModel.replace("NVIDIA ", "").replace("AMD Instinct ", "");
   return {
-    title: `${gpuModel} Rental Pricing — Compare ${shortName} Servers | GPUHunt`,
+    title: `${gpuModel} Rental Pricing — Compare ${shortName} Servers`,
     description: `Compare ${gpuModel} GPU server pricing across ${10}+ cloud providers. Find the cheapest ${shortName} instance available right now.`,
     openGraph: {
       title: `${gpuModel} GPU Rental Prices`,

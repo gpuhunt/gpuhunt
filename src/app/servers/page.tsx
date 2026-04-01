@@ -6,7 +6,7 @@ import FilterSidebar from "@/components/FilterSidebar";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cloud GPU Rental Prices — Compare H100, A100, RTX 4090 | GPUHunt",
+  title: "Cloud GPU Rental Prices — Compare H100, A100, RTX 4090",
   description: "Browse and filter 500+ cloud GPU server configs. Compare H100, A100, MI300X, L40S, and RTX 4090 pricing across Lambda Labs, RunPod, CoreWeave, and 17+ more providers.",
 };
 

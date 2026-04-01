@@ -2,7 +2,7 @@ import { getGpuFamilyCounts } from "@/lib/db";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Compare GPU Types — Cloud GPU Pricing | GPUHunt",
+  title: "Compare GPU Types — Cloud GPU Pricing",
   description:
     "Browse all GPU types available for cloud rental. Compare H100, A100, MI300X, L40S, RTX 4090 and 30+ more GPUs across 20+ providers. Starting prices, averages, and provider counts.",
 };

@@ -4,7 +4,7 @@ import { getAllProviderSLAs, uptimeBadgeClass } from "@/lib/provider-sla";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Compare GPU Cloud Providers — SLA, Support & Pricing | GPUHunt",
+  title: "Compare GPU Cloud Providers — SLA, Support & Pricing",
   description:
     "Side-by-side comparison of 20+ GPU cloud providers. Compare uptime SLAs, support tiers, billing models, GDPR compliance, certifications, and starting prices.",
 };

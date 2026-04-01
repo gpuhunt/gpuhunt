@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const r = REGIONS[region];
   if (!r) return { title: "Region — GPUHunt" };
   return {
-    title: `GPU Servers in ${r.label} — Cloud GPU Pricing | GPUHunt`,
+    title: `GPU Servers in ${r.label} — Cloud GPU Pricing`,
     description: r.description,
   };
 }
