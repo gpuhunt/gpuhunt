@@ -32,24 +32,34 @@ const GPU_VRAM_MAP: Record<string, number> = {
   "4090": 24, "3090": 24, "A100": 80, "H100": 80,
 };
 
+// Only list GPUs that AI/ML customers actually search for.
+// Vast.ai has 500+ listings including gaming GPUs from home setups — we skip those.
+const VAST_ALLOWED_GPUS = [
+  "H200", "H100", "A100", "A6000", "A5000", "A40", "A10G", "A10",
+  "L40S", "L40", "L4", "V100", "RTX 4090", "RTX 4080", "RTX 3090",
+];
+
+function isAllowedGpu(name: string): boolean {
+  return VAST_ALLOWED_GPUS.some((g) => name.includes(g));
+}
+
 function normalizeGpuName(name: string): string {
   const n = name.trim();
+  if (n.includes("H200")) return "NVIDIA H200";
   if (n.includes("H100")) return "NVIDIA H100";
   if (n.includes("A100")) return "NVIDIA A100";
   if (n.includes("A40"))  return "NVIDIA A40";
   if (n.includes("A6000")) return "NVIDIA A6000";
+  if (n.includes("A5000")) return "NVIDIA RTX A5000";
   if (n.includes("A10G")) return "NVIDIA A10G";
   if (n.includes("A10"))  return "NVIDIA A10";
   if (n.includes("L40S")) return "NVIDIA L40S";
   if (n.includes("L40"))  return "NVIDIA L40";
   if (n.includes("L4"))   return "NVIDIA L4";
   if (n.includes("V100")) return "NVIDIA V100";
-  if (n.includes("RTX 4090")) return "NVIDIA RTX 4090";
-  if (n.includes("RTX 3090")) return "NVIDIA RTX 3090";
-  if (n.includes("RTX 3080")) return "NVIDIA RTX 3080";
+  if (n.includes("RTX 4090") || n.includes("4090")) return "NVIDIA RTX 4090";
   if (n.includes("RTX 4080")) return "NVIDIA RTX 4080";
-  if (n.includes("4090")) return "NVIDIA RTX 4090";
-  if (n.includes("3090")) return "NVIDIA RTX 3090";
+  if (n.includes("RTX 3090") || n.includes("3090")) return "NVIDIA RTX 3090";
   return `NVIDIA ${n}`;
 }
 
@@ -91,6 +101,9 @@ export async function scrapeVast(): Promise<ScraperResult> {
 
     for (const offer of offers) {
       if (!offer.rentable || !offer.gpu_name || offer.dph_total <= 0) continue;
+
+      // Skip consumer/gaming GPUs — Vast.ai is a peer marketplace, home setups aren't relevant
+      if (!isAllowedGpu(offer.gpu_name)) continue;
 
       const gpuModel = normalizeGpuName(offer.gpu_name);
       const key = `${gpuModel}-${offer.num_gpus}`;

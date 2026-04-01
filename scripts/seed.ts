@@ -54,7 +54,7 @@ const providers = [
     slug: "vast",
     website: "https://vast.ai",
     affiliate_url: "https://vast.ai/console/create/?ref_id=gpuhunt",
-    description: "Decentralized GPU marketplace with some of the lowest on-demand GPU prices available.",
+    description: "Peer-to-peer GPU marketplace. We list their professional-grade GPUs (H100, A100, A6000) with competitive spot pricing.",
   },
   {
     id: "tensordock",
