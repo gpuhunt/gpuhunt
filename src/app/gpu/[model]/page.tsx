@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export async function generateStaticParams() {
   const gpuModels = getGpuModels();
-  return gpuModels.map((g) => ({ model: encodeURIComponent(g.gpu_model) }));
+  return gpuModels.map((g) => ({ model: g.gpu_model }));
 }
 
 export default async function GpuModelPage({ params }: PageProps) {
