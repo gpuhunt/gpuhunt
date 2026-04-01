@@ -166,6 +166,7 @@ export default function RootLayout({
                     { href: "/compare/runpod-vs-vast",             label: "RunPod vs Vast.ai"    },
                     { href: "/compare/hyperstack-vs-lambda-labs",  label: "Hyperstack vs Lambda" },
                     { href: "/api/servers",                         label: "JSON API"             },
+                    { href: "/methodology",                         label: "Methodology"          },
                   ].map((l) => (
                     <a key={l.href} href={l.href} className="footer-link block text-xs transition-colors">
                       {l.label}

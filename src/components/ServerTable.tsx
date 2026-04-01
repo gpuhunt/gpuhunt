@@ -116,6 +116,9 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
             <Th label="RAM" field="ram_gb" />
             <Th label="$/mo" field="price_monthly" />
             <Th label="$/hr" field="price_hourly" />
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+              $/GB·hr
+            </th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
               Location
             </th>
@@ -194,6 +197,18 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
               {/* Hourly price */}
               <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
                 {s.price_hourly ? fmt(s.price_hourly, s.currency) : "—"}
+              </td>
+
+              {/* $/GB VRAM per hour */}
+              <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
+                {s.price_hourly && s.gpu_vram_gb && s.gpu_count > 0
+                  ? (() => {
+                      const totalVram = s.gpu_vram_gb * s.gpu_count;
+                      const perGb = s.price_hourly / totalVram;
+                      const sym = s.currency === "EUR" ? "€" : "$";
+                      return `${sym}${perGb < 0.01 ? perGb.toFixed(4) : perGb.toFixed(3)}`;
+                    })()
+                  : "—"}
               </td>
 
               {/* Location */}

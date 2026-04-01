@@ -14,6 +14,10 @@ import { scrapeLatitude } from "./latitude";
 import { scrapePaperspace } from "./paperspace";
 import { scrapeHyperstack } from "./hyperstack";
 import { scrapeJarvisLabs } from "./jarvislabs";
+import { scrapeDigitalOcean } from "./digitalocean";
+import { scrapeOblivus } from "./oblivus";
+import { scrapeThunderCompute } from "./thundercompute";
+import { scrapeScaleway } from "./scaleway";
 import { ScraperResult } from "../types";
 
 export interface ScrapeAllResult {
@@ -41,7 +45,11 @@ export async function scrapeAll(): Promise<ScrapeAllResult> {
     { name: "Latitude.sh",   fn: scrapeLatitude   },
     { name: "Paperspace",    fn: scrapePaperspace },
     { name: "Hyperstack",    fn: scrapeHyperstack },
-    { name: "Jarvis Labs",   fn: scrapeJarvisLabs },
+    { name: "Jarvis Labs",    fn: scrapeJarvisLabs    },
+    { name: "DigitalOcean",  fn: scrapeDigitalOcean  },
+    { name: "Oblivus",       fn: scrapeOblivus       },
+    { name: "Thunder Compute", fn: scrapeThunderCompute },
+    { name: "Scaleway",      fn: scrapeScaleway      },
   ];
 
   const results: ScraperResult[] = [];
