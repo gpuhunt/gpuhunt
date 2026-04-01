@@ -8,11 +8,27 @@ let _db: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!_db) {
-    _db = new Database(DB_PATH);
-    _db.pragma("journal_mode = WAL");
+    // Open read-only so Vercel's read-only filesystem doesn't cause issues.
+    // upsertServer/recordPriceHistory only run in scraper scripts, not web requests.
+    try {
+      _db = new Database(DB_PATH, { readonly: true });
+    } catch {
+      _db = new Database(DB_PATH);
+    }
     _db.pragma("foreign_keys = ON");
   }
   return _db;
+}
+
+// Separate writable connection used only by scraper scripts
+let _dbWrite: Database.Database | null = null;
+export function getDbWrite(): Database.Database {
+  if (!_dbWrite) {
+    _dbWrite = new Database(DB_PATH);
+    _dbWrite.pragma("journal_mode = WAL");
+    _dbWrite.pragma("foreign_keys = ON");
+  }
+  return _dbWrite;
 }
 
 export function getProviders(): Provider[] {
@@ -162,7 +178,7 @@ export function getServersByProvider(providerSlug: string): ServerWithProvider[]
 }
 
 export function upsertServer(server: Omit<Server, "created_at" | "updated_at">): void {
-  const db = getDb();
+  const db = getDbWrite();
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
@@ -203,7 +219,7 @@ export function upsertServer(server: Omit<Server, "created_at" | "updated_at">):
 }
 
 export function recordPriceHistory(serverId: string, priceMonthly: number | null, priceHourly: number | null, available: number): void {
-  const db = getDb();
+  const db = getDbWrite();
   db.prepare(
     `INSERT INTO price_history (server_id, price_monthly, price_hourly, available, recorded_at)
      VALUES (?, ?, ?, ?, ?)`
