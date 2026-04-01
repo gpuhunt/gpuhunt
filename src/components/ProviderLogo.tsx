@@ -62,7 +62,7 @@ export default function ProviderLogo({ slug, name, size = 20 }: Props) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`https://logo.clearbit.com/${domain}`}
+      src={`https://www.google.com/s2/favicons?sz=64&domain=${domain}`}
       alt={name}
       width={size}
       height={size}
@@ -72,7 +72,6 @@ export default function ProviderLogo({ slug, name, size = 20 }: Props) {
         height: size,
         borderRadius: 4,
         objectFit: "contain",
-        background: "#fff",
         flexShrink: 0,
       }}
     />
