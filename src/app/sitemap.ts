@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/location/us`,        lastModified: now, changeFrequency: "daily",   priority: 0.85 },
     { url: `${baseUrl}/location/eu`,        lastModified: now, changeFrequency: "daily",   priority: 0.85 },
     { url: `${baseUrl}/location/apac`,      lastModified: now, changeFrequency: "daily",   priority: 0.85 },
+    { url: `${baseUrl}/providers`,          lastModified: now, changeFrequency: "daily",   priority: 0.9  },
     { url: `${baseUrl}/methodology`,        lastModified: now, changeFrequency: "monthly", priority: 0.6  },
   ];
 

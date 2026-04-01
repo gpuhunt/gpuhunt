@@ -74,8 +74,8 @@ export default function RootLayout({
                   { href: "/servers",                       label: "Servers"    },
                   { href: "/gpus",                          label: "GPU Types"  },
                   { href: "/best-value",                    label: "Best Value" },
+                  { href: "/providers",                     label: "Providers"  },
                   { href: "/use-case/llm-training",         label: "Use Cases"  },
-                  { href: "/compare/lambda-labs-vs-runpod", label: "Compare"    },
                 ].map((link) => (
                   <a
                     key={link.href}
@@ -127,6 +127,7 @@ export default function RootLayout({
                 <div className="space-y-2.5">
                   {[
                     { href: "/servers",                      label: "All Servers"   },
+                    { href: "/providers",                    label: "All Providers" },
                     { href: "/gpus",                         label: "GPU Types"     },
                     { href: "/best-value",                   label: "Best Value"    },
                     { href: "/location/us",                  label: "🇺🇸 US Servers" },

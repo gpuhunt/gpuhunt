@@ -1,6 +1,7 @@
 import { getProviderBySlug, getServersByProvider, getProviders } from "@/lib/db";
 import ServerTable from "@/components/ServerTable";
 import ProviderLogo from "@/components/ProviderLogo";
+import { getProviderSLA, uptimeColor, uptimeBadgeClass } from "@/lib/provider-sla";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -44,6 +45,8 @@ export default async function ProviderPage({ params }: PageProps) {
   const cheapestGpu = gpuServers
     .filter((s) => s.price_monthly != null)
     .sort((a, b) => (a.price_monthly ?? 0) - (b.price_monthly ?? 0))[0];
+
+  const sla = getProviderSLA(slug);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -146,6 +149,105 @@ export default async function ProviderPage({ params }: PageProps) {
           </div>
         </div>
       </div>
+
+      {/* SLA & Trust card */}
+      {sla && (
+        <div className="rounded-xl p-6 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <h2 className="text-xs font-semibold uppercase tracking-wider mb-5" style={{ color: "var(--text-muted)" }}>
+            SLA &amp; Trust
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+
+            {/* Uptime */}
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Uptime SLA</div>
+              <div className="flex items-center gap-2">
+                <span className={`badge ${uptimeBadgeClass(sla.uptime_numeric)}`} style={{ fontSize: "11px" }}>
+                  {sla.uptime_sla}
+                </span>
+              </div>
+            </div>
+
+            {/* SLA Credits */}
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Downtime Credits</div>
+              <div className="text-sm font-semibold" style={{ color: sla.sla_credits ? "var(--green)" : "var(--text-muted)" }}>
+                {sla.sla_credits ? "✓ Yes" : "✗ No"}
+              </div>
+            </div>
+
+            {/* GDPR */}
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>GDPR Compliant</div>
+              <div className="text-sm font-semibold" style={{ color: sla.gdpr ? "var(--green)" : "var(--text-muted)" }}>
+                {sla.gdpr ? "✓ Yes" : "✗ No"}
+              </div>
+            </div>
+
+            {/* Status page */}
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Status Page</div>
+              {sla.status_page ? (
+                <a
+                  href={sla.status_page}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-medium transition-colors"
+                  style={{ color: "var(--accent-light)" }}
+                >
+                  View status ↗
+                </a>
+              ) : (
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>None</span>
+              )}
+            </div>
+
+            {/* Support */}
+            <div>
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Support</div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{sla.support}</div>
+            </div>
+
+          </div>
+
+          {/* Billing models */}
+          <div className="mt-5 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
+            <div className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Billing Models</div>
+            <div className="flex flex-wrap gap-1.5">
+              {sla.billing.map((b) => (
+                <span key={b} className="badge badge-muted" style={{ fontSize: "11px" }}>{b}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Certifications */}
+          {sla.certifications.length > 0 && (
+            <div className="mt-4">
+              <div className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Certifications</div>
+              <div className="flex flex-wrap gap-1.5">
+                {sla.certifications.map((c) => (
+                  <span key={c} className="badge badge-indigo" style={{ fontSize: "11px" }}>{c}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Interconnect */}
+          {sla.interconnect && (
+            <div className="mt-4">
+              <div className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>Network Interconnect</div>
+              <div className="text-xs" style={{ color: "var(--accent-light)" }}>{sla.interconnect}</div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {sla.notes && (
+            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+              <div className="text-xs" style={{ color: "var(--text-muted)" }}>{sla.notes}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       <ServerTable servers={servers} />
     </div>
