@@ -6,15 +6,24 @@ import { useState } from "react";
 type SortKey = "price_monthly" | "price_hourly" | "gpu_count" | "ram_gb" | "gpu_vram_gb" | "cpu_cores";
 
 const GPU_BADGE: Record<string, string> = {
-  H100: "badge-green",
-  H200: "badge-green",
-  A100: "badge-cyan",
-  L40S: "badge-cyan",
-  L40:  "badge-cyan",
-  A40:  "badge-indigo",
-  A6000:"badge-indigo",
+  // NVIDIA
+  H100:  "badge-green",
+  H200:  "badge-green",
+  B200:  "badge-green",
+  A100:  "badge-cyan",
+  L40S:  "badge-cyan",
+  L40:   "badge-cyan",
+  A40:   "badge-indigo",
+  A6000: "badge-indigo",
   "4090":"badge-amber",
   "3090":"badge-amber",
+  "4080":"badge-amber",
+  // AMD Instinct
+  MI300: "badge-green",
+  MI325: "badge-green",
+  MI355: "badge-green",
+  MI250: "badge-cyan",
+  MI100: "badge-muted",
 };
 
 function gpuBadge(model: string) {
@@ -139,7 +148,7 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
                 {s.gpu_model ? (
                   <a href={`/gpu/${encodeURIComponent(s.gpu_model)}`}>
                     <span className={`badge ${gpuBadge(s.gpu_model)}`} style={{ fontSize: "11px" }}>
-                      {s.gpu_model.replace("NVIDIA ", "").replace("AMD ", "")}
+                      {s.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
                     </span>
                   </a>
                 ) : (

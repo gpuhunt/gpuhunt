@@ -27,15 +27,34 @@ interface VultrResponse {
   plans_metal: VultrMetalPlan[];
 }
 
-function normalizeGpuModel(brand: string | undefined, model: string | undefined): string | null {
-  if (!brand || brand === "none") return null;
+function normalizeGpuModel(brand: string | undefined, model: string | undefined, planId?: string): string | null {
+  // Also check plan ID for AMD GPU servers where brand/model fields may be empty
+  const combined = `${brand ?? ""} ${model ?? ""} ${planId ?? ""}`.toUpperCase();
+  if (!brand || brand === "none") {
+    // AMD GPU servers identified from plan name
+    if (combined.includes("MI355X")) return "AMD Instinct MI355X";
+    if (combined.includes("MI325X")) return "AMD Instinct MI325X";
+    if (combined.includes("MI300X")) return "AMD Instinct MI300X";
+    if (combined.includes("MI300")) return "AMD Instinct MI300";
+    if (combined.includes("MI250")) return "AMD Instinct MI250X";
+    return null;
+  }
+  if (brand.toUpperCase() === "AMD") {
+    if (combined.includes("MI355X")) return "AMD Instinct MI355X";
+    if (combined.includes("MI325X")) return "AMD Instinct MI325X";
+    if (combined.includes("MI300X")) return "AMD Instinct MI300X";
+    if (combined.includes("MI300")) return "AMD Instinct MI300";
+    if (combined.includes("MI250")) return "AMD Instinct MI250X";
+    if (combined.includes("MI100")) return "AMD Instinct MI100";
+    return `AMD ${model ?? "GPU"}`.trim();
+  }
   if (!model) return brand === "NVIDIA" ? "NVIDIA GPU" : null;
   const m = model.toUpperCase();
   if (m.includes("A100")) return "NVIDIA A100";
-  if (m.includes("A16")) return "NVIDIA A16";
-  if (m.includes("A40")) return "NVIDIA A40";
+  if (m.includes("A16"))  return "NVIDIA A16";
+  if (m.includes("A40"))  return "NVIDIA A40";
   if (m.includes("L40S")) return "NVIDIA L40S";
-  if (m.includes("L40")) return "NVIDIA L40";
+  if (m.includes("L40"))  return "NVIDIA L40";
   if (m.includes("H100")) return "NVIDIA H100";
   if (m.includes("H200")) return "NVIDIA H200";
   return `${brand} ${model}`.trim();
@@ -65,7 +84,7 @@ export async function scrapeVultr(): Promise<ScraperResult> {
 
     for (const plan of plans) {
       try {
-        const gpuModel = normalizeGpuModel(plan.gpu_brand, plan.gpu_model);
+        const gpuModel = normalizeGpuModel(plan.gpu_brand, plan.gpu_model, plan.id);
         const location = plan.locations?.length === 1
           ? plan.locations[0].toUpperCase()
           : plan.locations?.length > 1 ? "Multiple regions" : null;

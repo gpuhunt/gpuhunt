@@ -171,20 +171,29 @@ export function getServerCount(filters: ServerFilters = {}): number {
 // Canonical GPU families for homepage Browse by GPU section.
 // Each family uses a prefix search so "NVIDIA H100" matches SXM5, PCIe, NVL, etc.
 export const GPU_FAMILIES = [
-  { family: "NVIDIA B200",    label: "B200",     badge: "badge-green",  tier: "flagship" },
-  { family: "NVIDIA H200",    label: "H200",     badge: "badge-green",  tier: "flagship" },
-  { family: "NVIDIA H100",    label: "H100",     badge: "badge-green",  tier: "flagship" },
-  { family: "NVIDIA A100",    label: "A100",     badge: "badge-cyan",   tier: "flagship" },
-  { family: "NVIDIA L40S",    label: "L40S",     badge: "badge-cyan",   tier: "pro"      },
-  { family: "NVIDIA L40",     label: "L40",      badge: "badge-cyan",   tier: "pro"      },
-  { family: "NVIDIA A40",     label: "A40",      badge: "badge-indigo", tier: "pro"      },
-  { family: "NVIDIA A6000",   label: "A6000",    badge: "badge-indigo", tier: "pro"      },
-  { family: "NVIDIA RTX 4090",label: "RTX 4090", badge: "badge-amber",  tier: "consumer" },
-  { family: "NVIDIA RTX 3090",label: "RTX 3090", badge: "badge-amber",  tier: "consumer" },
-  { family: "NVIDIA RTX 4080",label: "RTX 4080", badge: "badge-amber",  tier: "consumer" },
-  { family: "NVIDIA V100",    label: "V100",     badge: "badge-muted",  tier: "legacy"   },
-  { family: "NVIDIA A10",     label: "A10",      badge: "badge-muted",  tier: "pro"      },
-  { family: "NVIDIA L4",      label: "L4",       badge: "badge-cyan",   tier: "pro"      },
+  // NVIDIA flagship
+  { family: "NVIDIA B200",          label: "B200",          badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA H200",          label: "H200",          badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA H100",          label: "H100",          badge: "badge-green",  tier: "flagship" },
+  { family: "NVIDIA A100",          label: "A100",          badge: "badge-cyan",   tier: "flagship" },
+  // AMD flagship
+  { family: "AMD Instinct MI300X",  label: "MI300X",        badge: "badge-green",  tier: "flagship" },
+  { family: "AMD Instinct MI325X",  label: "MI325X",        badge: "badge-green",  tier: "flagship" },
+  { family: "AMD Instinct MI355X",  label: "MI355X",        badge: "badge-green",  tier: "flagship" },
+  // NVIDIA pro
+  { family: "NVIDIA L40S",          label: "L40S",          badge: "badge-cyan",   tier: "pro"      },
+  { family: "NVIDIA L40",           label: "L40",           badge: "badge-cyan",   tier: "pro"      },
+  { family: "NVIDIA A40",           label: "A40",           badge: "badge-indigo", tier: "pro"      },
+  { family: "NVIDIA A6000",         label: "RTX A6000",     badge: "badge-indigo", tier: "pro"      },
+  { family: "NVIDIA A10",           label: "A10",           badge: "badge-muted",  tier: "pro"      },
+  { family: "NVIDIA L4",            label: "L4",            badge: "badge-cyan",   tier: "pro"      },
+  // Consumer / high-end
+  { family: "NVIDIA RTX 4090",      label: "RTX 4090",      badge: "badge-amber",  tier: "consumer" },
+  { family: "NVIDIA RTX 4080",      label: "RTX 4080",      badge: "badge-amber",  tier: "consumer" },
+  { family: "NVIDIA RTX 3090",      label: "RTX 3090",      badge: "badge-amber",  tier: "consumer" },
+  // Legacy
+  { family: "NVIDIA V100",          label: "V100",          badge: "badge-muted",  tier: "legacy"   },
+  { family: "AMD Instinct MI250",   label: "MI250X",        badge: "badge-muted",  tier: "legacy"   },
 ];
 
 export function getGpuFamilyCounts(): Array<typeof GPU_FAMILIES[0] & { count: number; cheapest: number | null }> {

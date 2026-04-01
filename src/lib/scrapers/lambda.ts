@@ -149,6 +149,33 @@ const LAMBDA_INSTANCES = [
     storage_type: "NVMe",
     price_hourly: 27.60,
   },
+  // AMD Instinct
+  {
+    name: "gpu_1x_mi300x",
+    display: "1x AMD Instinct MI300X (192 GB)",
+    gpu_model: "AMD Instinct MI300X",
+    gpu_count: 1,
+    gpu_vram_gb: 192,
+    cpu: "AMD EPYC",
+    cpu_cores: 24,
+    ram_gb: 384,
+    storage_gb: 512,
+    storage_type: "NVMe",
+    price_hourly: 3.49,
+  },
+  {
+    name: "gpu_8x_mi300x",
+    display: "8x AMD Instinct MI300X (192 GB)",
+    gpu_model: "AMD Instinct MI300X",
+    gpu_count: 8,
+    gpu_vram_gb: 192,
+    cpu: "AMD EPYC",
+    cpu_cores: 192,
+    ram_gb: 3072,
+    storage_gb: 4096,
+    storage_type: "NVMe",
+    price_hourly: 27.92,
+  },
 ];
 
 export async function scrapeLambda(): Promise<ScraperResult> {

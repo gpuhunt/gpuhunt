@@ -62,7 +62,7 @@ export default function HomePage() {
               <span key={i} className="flex items-center gap-2 px-5 whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
                 <span style={{ color: "var(--text-secondary)" }}>{s.provider_name}</span>
                 <span className="font-medium" style={{ color: "var(--accent-light)" }}>
-                  {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD ", "")}
+                  {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
                 </span>
                 <span className="font-semibold tabular-nums" style={{ color: "var(--text-primary)" }}>
                   {fmt(s.price_monthly, s.currency)}/mo
@@ -100,7 +100,7 @@ export default function HomePage() {
 
           <p className="text-base sm:text-lg mb-10 max-w-xl mx-auto" style={{ color: "var(--text-secondary)", lineHeight: 1.65 }}>
             {totalServers.toLocaleString()} servers. {gpuCount.toLocaleString()} GPU-ready.
-            Compare H100, A100, RTX&nbsp;4090 and more across {providers.length} providers — no signup.
+            Compare H100, MI300X, A100, RTX&nbsp;4090 and more across {providers.length} providers — no signup.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
@@ -248,7 +248,7 @@ export default function HomePage() {
                     {s.location && <span className="badge badge-muted" style={{ fontSize: "10px" }}>{s.location}</span>}
                   </div>
                   <div className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>
-                    {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD ", "")}
+                    {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
                     {s.gpu_vram_gb ? ` ${s.gpu_vram_gb}GB` : ""}
                   </div>
                   <div className="text-xs space-y-0.5 mb-4" style={{ color: "var(--text-muted)" }}>

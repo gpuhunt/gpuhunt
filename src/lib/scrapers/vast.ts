@@ -35,8 +35,15 @@ const GPU_VRAM_MAP: Record<string, number> = {
 // Only list GPUs that AI/ML customers actually search for.
 // Vast.ai has 500+ listings including gaming GPUs from home setups — we skip those.
 const VAST_ALLOWED_GPUS = [
+  // NVIDIA datacenter
   "H200", "H100", "A100", "A6000", "A5000", "A40", "A10G", "A10",
-  "L40S", "L40", "L4", "V100", "RTX 4090", "RTX 4080", "RTX 3090",
+  "L40S", "L40", "L4", "V100",
+  // NVIDIA high-end consumer (legit for AI)
+  "RTX 4090", "RTX 4080", "RTX 3090",
+  // AMD Instinct
+  "MI300X", "MI325X", "MI355X", "MI250", "MI100",
+  // AMD pro
+  "W7900", "W6800",
 ];
 
 function isAllowedGpu(name: string): boolean {
@@ -45,6 +52,13 @@ function isAllowedGpu(name: string): boolean {
 
 function normalizeGpuName(name: string): string {
   const n = name.trim();
+  // AMD Instinct
+  if (n.includes("MI355X")) return "AMD Instinct MI355X";
+  if (n.includes("MI325X")) return "AMD Instinct MI325X";
+  if (n.includes("MI300X")) return "AMD Instinct MI300X";
+  if (n.includes("MI250"))  return "AMD Instinct MI250X";
+  if (n.includes("MI100"))  return "AMD Instinct MI100";
+  // NVIDIA
   if (n.includes("H200")) return "NVIDIA H200";
   if (n.includes("H100")) return "NVIDIA H100";
   if (n.includes("A100")) return "NVIDIA A100";
