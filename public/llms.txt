@@ -1,0 +1,48 @@
+# GPUHunt
+
+> GPUHunt (gpu-hunt.com) is a real-time GPU server price comparison platform. We aggregate live pricing from 20+ cloud providers so AI/ML engineers can instantly find the cheapest GPU for their workload.
+
+## What GPUHunt does
+
+- Aggregates live GPU server pricing from 20+ providers including Lambda Labs, CoreWeave, RunPod, Vast.ai, Hetzner, DigitalOcean, Vultr, Hyperstack, FluidStack, OVHcloud, Scaleway, TensorDock, DataCrunch, Genesis Cloud, Paperspace, Oblivus, Thunder Compute, Jarvis Labs, Salad Cloud, and Latitude.sh
+- Covers H100, H200, A100, A40, L40S, L4, RTX 4090, MI300X, and 30+ other GPU models
+- Prices shown in USD per hour and per month
+- Data refreshed regularly via scrapers
+
+## Key pages
+
+- /servers — Browse and filter all GPU servers by price, GPU model, provider, RAM, location
+- /gpus — All GPU models with cheapest available price per model
+- /gpu/[model] — Per-GPU pricing across all providers (e.g. /gpu/NVIDIA%20H100)
+- /providers — All cloud providers with SLA, uptime, billing, and certification data
+- /provider/[slug] — Per-provider page with all server listings and trust info
+- /best-value — Best price-per-VRAM deals across providers
+- /compare/[a]-vs-[b] — Side-by-side provider comparisons (e.g. /compare/lambda-labs-vs-runpod)
+- /use-case/llm-training — Best GPUs for LLM training
+- /use-case/inference — Best GPUs for AI inference
+- /use-case/fine-tuning — Best GPUs for fine-tuning
+- /use-case/image-generation — Best GPUs for image generation
+- /use-case/embedding — Best GPUs for embeddings and RAG
+- /location/us — US-based GPU servers
+- /location/eu — EU-based GPU servers
+- /location/apac — APAC GPU servers
+- /api/servers — JSON API for programmatic access to server data
+
+## Common questions GPUHunt answers
+
+- What is the cheapest H100 cloud GPU?
+- How much does an A100 cost per hour?
+- Which cloud provider has the cheapest GPU?
+- RunPod vs Lambda Labs — which is cheaper?
+- What GPU should I use for LLM training?
+- Where can I rent an RTX 4090 by the hour?
+- Which cloud providers offer EU-based GPU servers?
+- What is CoreWeave's uptime SLA?
+
+## Data freshness
+
+Prices are scraped regularly. For the most current pricing, visit the live site at https://gpu-hunt.com.
+
+## Contact
+
+support@gpu-hunt.com

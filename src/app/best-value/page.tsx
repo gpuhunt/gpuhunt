@@ -68,8 +68,25 @@ export default function BestValuePage() {
   // Top 3 for callout cards
   const top3 = scored.slice(0, 3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Best Value GPU Servers — Highest FLOPS Per Dollar",
+    "description": "GPU servers ranked by FP16 TFLOPS per dollar — the best metric for AI/ML cost efficiency",
+    "url": "https://gpu-hunt.com/best-value",
+    "numberOfItems": scored.length,
+    "itemListElement": scored.slice(0, 10).map((s, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": `${s.gpu_model} on ${s.provider_name}`,
+      "description": `$${s.price_hourly!.toFixed(2)}/hr — ${s.tflopsPerDollar.toFixed(0)} TFLOPS/$`,
+      "url": `https://gpu-hunt.com/provider/${s.provider_slug}`,
+    })),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>

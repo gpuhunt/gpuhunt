@@ -161,7 +161,7 @@ export default function GeoDeals({ fallback, totalGpuCount }: Props) {
                   )}
                 </div>
                 <a
-                  href={s.url}
+                  href={s.provider_affiliate_url ?? s.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs"

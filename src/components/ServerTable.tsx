@@ -204,7 +204,7 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
               )}
             </div>
             <a
-              href={s.url}
+              href={s.provider_affiliate_url ?? s.url}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-xs"
@@ -393,7 +393,7 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
                 {/* Action */}
                 <td className={`px-4 ${py}`}>
                   <a
-                    href={s.url}
+                    href={s.provider_affiliate_url ?? s.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs whitespace-nowrap"

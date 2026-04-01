@@ -100,7 +100,8 @@ export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
   const offset = filters.offset || 0;
 
   const sql = `
-    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
+           p.affiliate_url as provider_affiliate_url
     FROM servers s
     JOIN providers p ON s.provider_id = p.id
     ${where}
@@ -245,7 +246,8 @@ export function getServersByLocation(region: string): ServerWithProvider[] {
   if (locs.length === 0) return [];
   const placeholders = locs.map(() => "s.location = ?").join(" OR ");
   return db.prepare(
-    `SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+    `SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
+            p.affiliate_url as provider_affiliate_url
      FROM servers s JOIN providers p ON s.provider_id = p.id
      WHERE (${placeholders}) AND s.available = 1
      ORDER BY s.price_hourly ASC NULLS LAST LIMIT 200`
@@ -329,7 +331,8 @@ export function getBestDealsPerFamily(opts: {
 
   const where = `WHERE ${conditions.join(" AND ")}`;
   const sql = `
-    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
+           p.affiliate_url as provider_affiliate_url
     FROM servers s
     JOIN providers p ON s.provider_id = p.id
     ${where}

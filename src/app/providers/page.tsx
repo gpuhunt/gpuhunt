@@ -44,8 +44,24 @@ export default function ProvidersPage() {
   const withSla = enriched.filter((p) => p.sla?.uptime_numeric != null).length;
   const gdprCount = enriched.filter((p) => p.sla?.gdpr).length;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "GPU Cloud Providers Comparison — GPUHunt",
+    "description": `Compare ${totalProviders} GPU cloud providers by SLA, pricing, support, and compliance`,
+    "url": "https://gpu-hunt.com/providers",
+    "numberOfItems": totalProviders,
+    "itemListElement": providers.map((p, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": p.name,
+      "url": `https://gpu-hunt.com/provider/${p.slug}`,
+    })),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>

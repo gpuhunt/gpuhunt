@@ -74,8 +74,67 @@ export default function HomePage() {
     server: getServers({ gpu_model: p.model, sort_by: "price_hourly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0] ?? null,
   })).filter((p) => p.server?.price_hourly);
 
+  // Build FAQ answers dynamically from live data
+  const cheapestH100 = getServers({ gpu_model: "NVIDIA H100", sort_by: "price_hourly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0];
+  const cheapestA100 = getServers({ gpu_model: "NVIDIA A100", sort_by: "price_hourly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0];
+  const cheapestRtx4090 = getServers({ gpu_model: "NVIDIA RTX 4090", sort_by: "price_hourly", available_only: true, limit: 1 })[0];
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the cheapest H100 cloud GPU?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": cheapestH100
+            ? `The cheapest H100 is currently on ${cheapestH100.provider_name} at $${cheapestH100.price_hourly!.toFixed(2)}/hr. Compare all H100 providers at gpu-hunt.com/gpu/NVIDIA%20H100`
+            : "Compare H100 pricing across providers at gpu-hunt.com/gpu/NVIDIA%20H100",
+        },
+      },
+      {
+        "@type": "Question",
+        "name": "How much does an A100 GPU cost per hour?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": cheapestA100
+            ? `A100 cloud GPU pricing starts at $${cheapestA100.price_hourly!.toFixed(2)}/hr on ${cheapestA100.provider_name}. Prices vary by VRAM (40 GB vs 80 GB), multi-GPU configs, and provider. See all A100 options at gpu-hunt.com/gpu/NVIDIA%20A100`
+            : "A100 pricing varies by provider and configuration. See current prices at gpu-hunt.com/gpu/NVIDIA%20A100",
+        },
+      },
+      {
+        "@type": "Question",
+        "name": "Which cloud provider has the cheapest GPU?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `GPU pricing varies by model and region. Marketplace providers like Vast.ai and Salad Cloud often have the lowest spot prices, while dedicated providers like Lambda Labs, CoreWeave, and Hetzner offer more stability. Compare all ${providers.length} providers at gpu-hunt.com/providers`,
+        },
+      },
+      {
+        "@type": "Question",
+        "name": "Where can I rent an RTX 4090 by the hour?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": cheapestRtx4090
+            ? `RTX 4090 rentals start at $${cheapestRtx4090.price_hourly!.toFixed(2)}/hr on ${cheapestRtx4090.provider_name}. Available on RunPod, Vast.ai, TensorDock, and more. See all options at gpu-hunt.com/gpu/NVIDIA%20RTX%204090`
+            : "RTX 4090 rentals are available on RunPod, Vast.ai, TensorDock, and more. See prices at gpu-hunt.com/gpu/NVIDIA%20RTX%204090",
+        },
+      },
+      {
+        "@type": "Question",
+        "name": "What GPU is best for LLM training?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For LLM training, the NVIDIA H100 SXM5 (80GB) is the top choice for large models due to NVLink and high memory bandwidth. The A100 80GB is a cost-effective alternative. For smaller models, the L40S or RTX 4090 offer good performance per dollar. See recommendations at gpu-hunt.com/use-case/llm-training",
+        },
+      },
+    ],
+  };
+
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {/* ── Live price ticker ── */}
       {ticker.length > 0 && (
         <div

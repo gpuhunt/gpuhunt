@@ -15,13 +15,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GPUHunt — Compare GPU Server Prices",
+  title: {
+    default: "GPUHunt — Compare GPU Server Prices",
+    template: "%s | GPUHunt",
+  },
   description:
     "Real-time GPU server pricing from Lambda Labs, CoreWeave, RunPod, Vast.ai, Hyperstack, and more. Find the cheapest H100, A100, MI300X, or RTX 4090 instantly.",
+  metadataBase: new URL("https://gpu-hunt.com"),
   openGraph: {
     title: "GPUHunt — Compare GPU Server Prices",
     description: "Real-time GPU server pricing across 20+ providers. Find the best deal for AI/ML.",
     type: "website",
+    url: "https://gpu-hunt.com",
+    siteName: "GPUHunt",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GPUHunt — Compare GPU Server Prices",
+    description: "Real-time GPU server pricing across 20+ providers.",
+  },
+  alternates: {
+    canonical: "https://gpu-hunt.com",
   },
 };
 
@@ -102,6 +116,28 @@ export default function RootLayout({
             </div>
           </div>
         </nav>
+
+        {/* Global structured data — WebSite schema enables Google Sitelinks Search Box */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "GPUHunt",
+              "url": "https://gpu-hunt.com",
+              "description": "Real-time GPU server pricing comparison across 20+ cloud providers. Find the cheapest H100, A100, RTX 4090, and more.",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://gpu-hunt.com/servers?search={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              }
+            }),
+          }}
+        />
 
         <main className="flex-1">{children}</main>
 

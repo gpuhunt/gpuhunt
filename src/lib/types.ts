@@ -40,6 +40,7 @@ export interface ServerWithProvider extends Server {
   provider_name: string;
   provider_slug: string;
   provider_website: string;
+  provider_affiliate_url: string | null;
 }
 
 export interface ServerFilters {

@@ -53,8 +53,25 @@ export default function GpusPage() {
   const totalConfigs = families.reduce((s, f) => s + f.count, 0);
   const cheapestGlobal = Math.min(...families.map((f) => f.cheapest ?? Infinity).filter(isFinite));
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Cloud GPU Types — GPUHunt",
+    "description": "All GPU models available for cloud rental with live pricing",
+    "url": "https://gpu-hunt.com/gpus",
+    "numberOfItems": families.length,
+    "itemListElement": families.map((f, i) => ({
+      "@type": "ListItem",
+      "position": i + 1,
+      "name": f.label,
+      "url": `https://gpu-hunt.com/gpu/${encodeURIComponent(f.family)}`,
+      "description": f.cheapest ? `${f.label} from $${f.cheapest.toFixed(2)}/hr across ${f.providers} providers` : f.label,
+    })),
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>
