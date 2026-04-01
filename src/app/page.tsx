@@ -1,6 +1,7 @@
 import { getProviders, getServerCount, getGpuFamilyCounts, getBestDealsPerFamily, getServers } from "@/lib/db";
 import ProviderLogo from "@/components/ProviderLogo";
 import GeoDeals from "@/components/GeoDeals";
+import QuickSearch from "@/components/QuickSearch";
 
 // Providers that are peer marketplaces / spot-only — excluded from "Best Cloud Deals"
 const MARKETPLACE_PROVIDERS = ["vast", "salad"];
@@ -20,6 +21,13 @@ export default function HomePage() {
   const gpuCount     = getServerCount({ min_gpu_count: 1, available_only: true });
   const providers    = getProviders();
   const gpuFamilies  = getGpuFamilyCounts();
+
+  // Enrich providers with server count + cheapest GPU for the homepage grid
+  const providerStats = providers.map((p) => {
+    const cheapestGpu = getServers({ provider: p.slug, min_gpu_count: 1, sort_by: "price_hourly", available_only: true, limit: 1 })[0] ?? null;
+    const serverCount = getServerCount({ provider: p.slug, available_only: true });
+    return { ...p, cheapestGpu, serverCount };
+  });
 
   // Best cloud deals — one per GPU family, diverse providers (no Hetzner bare metal dominating)
   const cloudDeals = getBestDealsPerFamily({
@@ -41,8 +49,17 @@ export default function HomePage() {
     limit: 20,
   });
 
-  const cheapH100 = getServers({ gpu_model: "NVIDIA H100", sort_by: "price_monthly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0];
-  const cheapA100 = getServers({ gpu_model: "NVIDIA A100", sort_by: "price_monthly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0];
+  // Price pills for hero
+  const heroPills = [
+    { model: "NVIDIA H100",          label: "H100",    color: "var(--green)"  },
+    { model: "NVIDIA A100",          label: "A100",    color: "var(--cyan)"   },
+    { model: "NVIDIA L40S",          label: "L40S",    color: "var(--accent-light)" },
+    { model: "AMD Instinct MI300X",  label: "MI300X",  color: "var(--amber)"  },
+    { model: "NVIDIA RTX 4090",      label: "4090",    color: "var(--text-secondary)" },
+  ].map((p) => ({
+    ...p,
+    server: getServers({ gpu_model: p.model, sort_by: "price_hourly", exclude_providers: MARKETPLACE_PROVIDERS, available_only: true, limit: 1 })[0] ?? null,
+  })).filter((p) => p.server?.price_hourly);
 
   return (
     <div>
@@ -98,37 +115,26 @@ export default function HomePage() {
             Compare H100, MI300X, A100, RTX&nbsp;4090 and more across {providers.length} providers — no signup.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
-            <a href="/servers?min_gpu_count=1" className="btn-primary inline-flex items-center justify-center gap-2 px-6 py-3 text-sm">
-              Browse GPU Servers
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </a>
-            <a href="/servers" className="btn-ghost inline-flex items-center justify-center gap-2 px-6 py-3 text-sm">
-              All Servers
-            </a>
+          {/* Quick search widget */}
+          <div className="mb-8">
+            <QuickSearch gpuFamilies={gpuFamilies} />
           </div>
 
-          {/* Cheapest-of pills — cloud providers only */}
-          {(cheapH100 || cheapA100) && (
-            <div className="flex flex-wrap justify-center gap-3">
-              {cheapH100 && (
-                <a href="/servers?gpu_model=NVIDIA+H100" className="glass rounded-lg px-4 py-2 text-sm transition-opacity hover:opacity-80">
-                  <span style={{ color: "var(--text-muted)" }}>H100 from </span>
-                  <span className="font-bold tabular-nums" style={{ color: "var(--green)" }}>
-                    {fmtHr(cheapH100.price_hourly)}
+          {/* Live price pills */}
+          {heroPills.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {heroPills.map((p) => (
+                <a
+                  key={p.model}
+                  href={`/gpu/${encodeURIComponent(p.model)}`}
+                  className="glass rounded-lg px-3 py-1.5 text-xs transition-opacity hover:opacity-80 tabular-nums"
+                >
+                  <span style={{ color: "var(--text-muted)" }}>{p.label} </span>
+                  <span className="font-bold" style={{ color: p.color }}>
+                    from ${p.server!.price_hourly!.toFixed(2)}/hr
                   </span>
-                  <span style={{ color: "var(--text-muted)" }}> @ {cheapH100.provider_name}</span>
                 </a>
-              )}
-              {cheapA100 && (
-                <a href="/servers?gpu_model=NVIDIA+A100" className="glass rounded-lg px-4 py-2 text-sm transition-opacity hover:opacity-80">
-                  <span style={{ color: "var(--text-muted)" }}>A100 from </span>
-                  <span className="font-bold tabular-nums" style={{ color: "var(--cyan)" }}>
-                    {fmtHr(cheapA100.price_hourly)}
-                  </span>
-                  <span style={{ color: "var(--text-muted)" }}> @ {cheapA100.provider_name}</span>
-                </a>
-              )}
+              ))}
             </div>
           )}
         </div>
@@ -278,29 +284,27 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {providers.map((p) => (
+            {providerStats.map((p) => (
               <a key={p.id} href={`/provider/${p.slug}`} className="card-hover flex items-start gap-3 p-4">
                 <ProviderLogo slug={p.slug} name={p.name} size={28} />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     <div className="text-sm font-semibold truncate">{p.name}</div>
                     {p.credits_usd != null && p.credits_usd > 0 && (
-                      <span
-                        className="shrink-0 text-xs font-semibold rounded px-1.5 py-0.5"
-                        style={{
-                          background: "rgba(34,197,94,0.12)",
-                          color: "var(--green)",
-                          border: "1px solid rgba(34,197,94,0.25)",
-                          fontSize: "10px",
-                        }}
-                      >
+                      <span className="shrink-0 text-xs font-semibold rounded px-1.5 py-0.5"
+                        style={{ background: "rgba(34,197,94,0.12)", color: "var(--green)", border: "1px solid rgba(34,197,94,0.25)", fontSize: "10px" }}>
                         ${p.credits_usd} free
                       </span>
                     )}
                   </div>
-                  {p.description && (
-                    <div className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>{p.description}</div>
-                  )}
+                  <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                    <span>{p.serverCount} servers</span>
+                    {p.cheapestGpu?.price_hourly && (
+                      <span style={{ color: "var(--accent-light)" }}>
+                        GPU from ${p.cheapestGpu.price_hourly.toFixed(2)}/hr
+                      </span>
+                    )}
+                  </div>
                 </div>
               </a>
             ))}

@@ -4,6 +4,30 @@ import { ServerWithProvider } from "@/lib/types";
 import { useState } from "react";
 import ProviderLogo from "./ProviderLogo";
 
+// SLA uptime dot — quick trust signal next to provider name
+const SLA_DOT: Record<string, { color: string; title: string }> = {
+  "coreweave":    { color: "#22c55e", title: "99.9% SLA"    },
+  "vultr":        { color: "#22c55e", title: "100% SLA"     },
+  "hyperstack":   { color: "#22c55e", title: "100% SLA"     },
+  "oblivus":      { color: "#22c55e", title: "99.995% SLA"  },
+  "runpod":       { color: "#22c55e", title: "99.99% SLA (Secure Cloud)" },
+  "fluidstack":   { color: "#22c55e", title: "99% SLA"      },
+  "ovh":          { color: "#22c55e", title: "99.5% SLA"    },
+  "scaleway":     { color: "#22c55e", title: "99.5% SLA"    },
+  "hetzner":      { color: "#22c55e", title: "99.9% SLA"    },
+  "digitalocean": { color: "#f59e0b", title: "99% SLA (GPU)" },
+  "genesis":      { color: "#f59e0b", title: "99.0% SLA"    },
+  "datacrunch":   { color: "#f59e0b", title: "~99.9% SLA"   },
+  "latitude":     { color: "#f59e0b", title: "Hardware repair SLA, no uptime %" },
+  "tensordock":   { color: "#f59e0b", title: "99.99% host quality" },
+  "lambda-labs":  { color: "#6b7280", title: "No published SLA" },
+  "paperspace":   { color: "#6b7280", title: "No published SLA" },
+  "vast":         { color: "#6b7280", title: "No SLA (marketplace)" },
+  "salad":        { color: "#6b7280", title: "~90-95% per node (distributed)" },
+  "jarvislabs":   { color: "#6b7280", title: "No SLA"       },
+  "thundercompute":{ color: "#6b7280", title: "No published SLA" },
+};
+
 type SortKey = "price_monthly" | "price_hourly" | "gpu_count" | "ram_gb" | "gpu_vram_gb" | "cpu_cores";
 
 const GPU_BADGE: Record<string, string> = {
@@ -119,6 +143,83 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
 
   const py = compact ? "py-1.5" : "py-3";
 
+  // ── Mobile card view (hidden on sm+) ──────────────────────────────
+  const mobileCards = (
+    <div className="block sm:hidden space-y-3">
+      {servers.map((s) => (
+        <div
+          key={s.id}
+          className="rounded-xl p-4"
+          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        >
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-3">
+            <a href={`/provider/${s.provider_slug}`} className="inline-flex items-center gap-2">
+              <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={18} />
+              <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{s.provider_name}</span>
+              {SLA_DOT[s.provider_slug] && (
+                <span title={SLA_DOT[s.provider_slug].title}
+                  style={{ width: 6, height: 6, borderRadius: "50%", background: SLA_DOT[s.provider_slug].color, display: "inline-block" }} />
+              )}
+            </a>
+            {s.location && (
+              <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                {locationFlag(s.location)} {s.location}
+              </span>
+            )}
+          </div>
+
+          {/* GPU */}
+          {s.gpu_model && (
+            <div className="mb-2">
+              <a href={`/gpu/${encodeURIComponent(s.gpu_model)}`}>
+                <span className={`badge ${gpuBadge(s.gpu_model)}`} style={{ fontSize: "11px" }}>
+                  {s.gpu_count > 0 ? `${s.gpu_count}× ` : ""}
+                  {s.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
+                  {s.gpu_vram_gb ? ` ${s.gpu_vram_gb}GB` : ""}
+                </span>
+              </a>
+            </div>
+          )}
+
+          {/* Specs row */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs" style={{ color: "var(--text-muted)" }}>
+            {s.cpu_cores && <span>{s.cpu_cores} cores</span>}
+            {s.ram_gb && <span>{s.ram_gb} GB RAM</span>}
+            {s.gpu_vram_gb && s.gpu_count > 0 && (
+              <span>{s.gpu_vram_gb * s.gpu_count} GB VRAM total</span>
+            )}
+          </div>
+
+          {/* Price + CTA */}
+          <div className="flex items-end justify-between">
+            <div>
+              <div className="text-xl font-bold tabular-nums" style={{ color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+                {s.price_hourly ? `$${s.price_hourly.toFixed(2)}/hr` : (s.price_monthly ? `$${s.price_monthly.toFixed(0)}/mo` : "—")}
+              </div>
+              {s.price_hourly && s.gpu_vram_gb && s.gpu_count > 0 && (
+                <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  ${(s.price_hourly / (s.gpu_vram_gb * s.gpu_count)).toFixed(3)}/GB·hr
+                </div>
+              )}
+            </div>
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary inline-flex items-center gap-1 px-4 py-2 text-xs"
+            >
+              View deal
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M2 5h6M5 2.5l2.5 2.5L5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div>
       {/* Toolbar */}
@@ -155,7 +256,9 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
+      {mobileCards}
+
+      <div className="hidden sm:block overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
         <table className="min-w-full text-sm">
           {/* Header */}
           <thead>
@@ -204,6 +307,19 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
                   >
                     <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={18} />
                     {s.provider_name}
+                    {SLA_DOT[s.provider_slug] && (
+                      <span
+                        title={SLA_DOT[s.provider_slug].title}
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: SLA_DOT[s.provider_slug].color,
+                          display: "inline-block",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
                   </a>
                 </td>
 

@@ -76,6 +76,75 @@ export default async function ServersPage({ searchParams }: PageProps) {
         </div>
       </div>
 
+      {/* Budget quick-filter pills */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <span className="text-xs self-center mr-1" style={{ color: "var(--text-muted)" }}>Budget:</span>
+        {[
+          { label: "Under $1/hr",  max_price: 730   },
+          { label: "Under $3/hr",  max_price: 2190  },
+          { label: "Under $10/hr", max_price: 7300  },
+          { label: "Under $50/hr", max_price: 36500 },
+        ].map(({ label, max_price }) => {
+          const isActive = filters.max_price === max_price;
+          const href = (() => {
+            const p = new URLSearchParams();
+            if (filters.gpu_model) p.set("gpu_model", filters.gpu_model);
+            if (filters.provider)  p.set("provider",  filters.provider);
+            if (filters.min_gpu_count) p.set("min_gpu_count", String(filters.min_gpu_count));
+            if (!isActive) p.set("max_price", String(max_price));
+            return `/servers?${p.toString()}`;
+          })();
+          return (
+            <a
+              key={label}
+              href={href}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: isActive ? "var(--accent)" : "var(--surface)",
+                border: "1px solid",
+                borderColor: isActive ? "var(--accent)" : "var(--border)",
+                color: isActive ? "#fff" : "var(--text-muted)",
+              }}
+            >
+              {label}
+            </a>
+          );
+        })}
+        {/* GPU count quick-filter */}
+        <span className="text-xs self-center ml-3 mr-1" style={{ color: "var(--text-muted)" }}>Size:</span>
+        {[
+          { label: "Single GPU",  min_gpu_count: 1  },
+          { label: "2+ GPUs",     min_gpu_count: 2  },
+          { label: "4+ GPUs",     min_gpu_count: 4  },
+          { label: "8+ GPUs",     min_gpu_count: 8  },
+        ].map(({ label, min_gpu_count }) => {
+          const isActive = filters.min_gpu_count === min_gpu_count;
+          const href = (() => {
+            const p = new URLSearchParams();
+            if (filters.gpu_model) p.set("gpu_model", filters.gpu_model);
+            if (filters.provider)  p.set("provider",  filters.provider);
+            if (filters.max_price) p.set("max_price",  String(filters.max_price));
+            if (!isActive) p.set("min_gpu_count", String(min_gpu_count));
+            return `/servers?${p.toString()}`;
+          })();
+          return (
+            <a
+              key={label}
+              href={href}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                background: isActive ? "var(--accent)" : "var(--surface)",
+                border: "1px solid",
+                borderColor: isActive ? "var(--accent)" : "var(--border)",
+                color: isActive ? "#fff" : "var(--text-muted)",
+              }}
+            >
+              {label}
+            </a>
+          );
+        })}
+      </div>
+
       {/* Layout */}
       <div className="flex flex-col lg:flex-row gap-8">
         <Suspense fallback={<div className="w-56 shrink-0" />}>
