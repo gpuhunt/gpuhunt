@@ -40,14 +40,27 @@ export default function HomePage() {
     getServers({ provider: slug, min_gpu_count: 1, sort_by: "price_hourly", available_only: true, limit: 1 })
   ).filter(Boolean);
 
-  // Ticker: mix of cloud deals
-  const ticker = getServers({
+  // Ticker: interleaved by provider so no provider runs consecutively
+  const tickerRaw = getServers({
     min_gpu_count: 1,
     sort_by: "price_monthly",
     exclude_providers: MARKETPLACE_PROVIDERS,
     available_only: true,
-    limit: 20,
+    limit: 80,
   });
+  // Group by provider, then round-robin interleave
+  const tickerByProvider = tickerRaw.reduce<Record<string, typeof tickerRaw>>((acc, s) => {
+    (acc[s.provider_slug] ??= []).push(s);
+    return acc;
+  }, {});
+  const tickerQueues = Object.values(tickerByProvider);
+  const ticker: typeof tickerRaw = [];
+  const maxLen = Math.max(...tickerQueues.map((q) => q.length));
+  for (let i = 0; i < maxLen; i++) {
+    for (const queue of tickerQueues) {
+      if (queue[i]) ticker.push(queue[i]);
+    }
+  }
 
   // Price pills for hero
   const heroPills = [
