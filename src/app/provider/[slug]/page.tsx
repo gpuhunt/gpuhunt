@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const provider = getProviderBySlug(slug);
   if (!provider) return { title: "Provider Not Found — GPUHunt" };
   return {
-    title: `${provider.name} Server Pricing — GPUHunt`,
-    description: `Compare all ${provider.name} dedicated and GPU server pricing. ${provider.description ?? ""}`,
+    title: `${provider.name} GPU Cloud Pricing — All Plans & Specs | GPUHunt`,
+    description: `Live ${provider.name} GPU server pricing. Compare H100, A100, and all available instances. ${provider.description ?? ""}`.trim(),
   };
 }
 

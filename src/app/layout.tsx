@@ -16,11 +16,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "GPUHunt — Compare GPU Server Prices",
+    default: "GPUHunt — Cloud GPU Rental Price Comparison",
     template: "%s | GPUHunt",
   },
   description:
-    "Real-time GPU server pricing from Lambda Labs, CoreWeave, RunPod, Vast.ai, Hyperstack, and more. Find the cheapest H100, A100, MI300X, or RTX 4090 instantly.",
+    "Compare cloud GPU rental prices across 20+ providers. Find the cheapest H100, A100, MI300X, or RTX 4090 from Lambda Labs, CoreWeave, RunPod, Vast.ai, and more — updated live.",
   metadataBase: new URL("https://gpu-hunt.com"),
   openGraph: {
     title: "GPUHunt — Compare GPU Server Prices",
