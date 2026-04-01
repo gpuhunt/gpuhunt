@@ -208,17 +208,48 @@ export const GPU_FAMILIES = [
   { family: "AMD Instinct MI250",   label: "MI250X",        badge: "badge-muted",  tier: "legacy"   },
 ];
 
-export function getGpuFamilyCounts(): Array<typeof GPU_FAMILIES[0] & { count: number; cheapest: number | null }> {
+export function getGpuFamilyCounts(): Array<typeof GPU_FAMILIES[0] & { count: number; cheapest: number | null; avg: number | null; providers: number }> {
   const db = getDb();
   return GPU_FAMILIES.map((fam) => {
     const row = db.prepare(
-      `SELECT COUNT(*) as count, MIN(price_hourly) as cheapest
+      `SELECT COUNT(*) as count, MIN(price_hourly) as cheapest, AVG(price_hourly) as avg,
+              COUNT(DISTINCT s.provider_id) as providers
        FROM servers s
        JOIN providers p ON s.provider_id = p.id
        WHERE s.gpu_model LIKE ? AND s.available = 1 AND s.gpu_count >= 1`
-    ).get(`${fam.family}%`) as { count: number; cheapest: number | null };
-    return { ...fam, count: row.count, cheapest: row.cheapest };
+    ).get(`${fam.family}%`) as { count: number; cheapest: number | null; avg: number | null; providers: number };
+    return { ...fam, count: row.count, cheapest: row.cheapest, avg: row.avg, providers: row.providers };
   }).filter((f) => f.count > 0);
+}
+
+export function getGpuFamilyStats(family: string): { cheapest: number | null; avg: number | null; providers: number; configs: number } {
+  const db = getDb();
+  const row = db.prepare(
+    `SELECT MIN(price_hourly) as cheapest, AVG(price_hourly) as avg,
+            COUNT(DISTINCT s.provider_id) as providers, COUNT(*) as configs
+     FROM servers s
+     WHERE s.gpu_model LIKE ? AND s.available = 1 AND s.gpu_count >= 1 AND s.price_hourly IS NOT NULL`
+  ).get(`${family}%`) as { cheapest: number | null; avg: number | null; providers: number; configs: number };
+  return row;
+}
+
+export function getServersByLocation(region: string): ServerWithProvider[] {
+  const db = getDb();
+  // Map region slug to location patterns
+  const patterns: Record<string, string[]> = {
+    "us":   ["US", "CA"],
+    "eu":   ["EU", "EU-FR", "DE", "FR", "NL", "GB", "FI", "SE", "NO", "PL", "ES", "IT", "PT", "RO", "CZ", "SK", "HU", "GR", "BG", "HR", "SI", "LT", "IS"],
+    "apac": ["JP", "NRT", "AU", "SG", "KR", "IN", "HK", "TW", "TH", "VN", "CN"],
+  };
+  const locs = patterns[region] ?? [];
+  if (locs.length === 0) return [];
+  const placeholders = locs.map(() => "s.location = ?").join(" OR ");
+  return db.prepare(
+    `SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+     FROM servers s JOIN providers p ON s.provider_id = p.id
+     WHERE (${placeholders}) AND s.available = 1
+     ORDER BY s.price_hourly ASC NULLS LAST LIMIT 200`
+  ).all(...locs) as ServerWithProvider[];
 }
 
 export function getGpuModels(): { gpu_model: string; count: number }[] {

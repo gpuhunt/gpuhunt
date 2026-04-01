@@ -1,4 +1,5 @@
 import { getServers, getProviders, getServerCount, getGpuFamilyCounts } from "@/lib/db";
+import ProviderLogo from "@/components/ProviderLogo";
 
 // Providers that are peer marketplaces / spot-only — excluded from "Best Cloud Deals"
 const MARKETPLACE_PROVIDERS = ["vast", "salad"];
@@ -354,12 +355,24 @@ export default function HomePage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {providers.map((p) => (
               <a key={p.id} href={`/provider/${p.slug}`} className="card-hover flex items-start gap-3 p-4">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{ background: "var(--surface-3)", border: "1px solid var(--border)", color: "var(--accent-light)" }}>
-                  {p.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{p.name}</div>
+                <ProviderLogo slug={p.slug} name={p.name} size={28} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="text-sm font-semibold truncate">{p.name}</div>
+                    {p.credits_usd != null && p.credits_usd > 0 && (
+                      <span
+                        className="shrink-0 text-xs font-semibold rounded px-1.5 py-0.5"
+                        style={{
+                          background: "rgba(34,197,94,0.12)",
+                          color: "var(--green)",
+                          border: "1px solid rgba(34,197,94,0.25)",
+                          fontSize: "10px",
+                        }}
+                      >
+                        ${p.credits_usd} free
+                      </span>
+                    )}
+                  </div>
                   {p.description && (
                     <div className="text-xs mt-0.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>{p.description}</div>
                   )}

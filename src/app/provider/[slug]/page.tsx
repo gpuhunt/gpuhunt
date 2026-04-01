@@ -76,14 +76,31 @@ export default async function ProviderPage({ params }: PageProps) {
                 {provider.description}
               </p>
             )}
-            <a
-              href={provider.affiliate_url ?? provider.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs mt-4"
-            >
-              Visit {provider.name} →
-            </a>
+            <div className="flex items-center gap-3 mt-4 flex-wrap">
+              <a
+                href={provider.affiliate_url ?? provider.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs"
+              >
+                Visit {provider.name} →
+              </a>
+              {provider.credits_usd != null && provider.credits_usd > 0 && (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold"
+                  style={{
+                    background: "rgba(34,197,94,0.12)",
+                    border: "1px solid rgba(34,197,94,0.3)",
+                    color: "var(--green)",
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M6 1v10M3 4l3-3 3 3M2 9h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  ${provider.credits_usd} free credits
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Stats */}

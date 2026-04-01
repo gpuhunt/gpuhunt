@@ -72,9 +72,10 @@ export default function RootLayout({
               <div className="flex items-center gap-0.5 sm:gap-1">
                 {[
                   { href: "/servers",                       label: "Servers"    },
+                  { href: "/gpus",                          label: "GPU Types"  },
+                  { href: "/best-value",                    label: "Best Value" },
                   { href: "/use-case/llm-training",         label: "Use Cases"  },
                   { href: "/compare/lambda-labs-vs-runpod", label: "Compare"    },
-                  { href: "/api/servers",                   label: "API"        },
                 ].map((link) => (
                   <a
                     key={link.href}
@@ -126,10 +127,11 @@ export default function RootLayout({
                 <div className="space-y-2.5">
                   {[
                     { href: "/servers",                      label: "All Servers"   },
-                    { href: "/servers?min_gpu_count=1",      label: "GPU Servers"   },
-                    { href: "/servers?gpu_model=NVIDIA+H100",label: "H100 Servers"  },
-                    { href: "/servers?gpu_model=NVIDIA+A100",label: "A100 Servers"  },
-                    { href: "/servers?gpu_model=AMD+Instinct+MI300X", label: "MI300X Servers" },
+                    { href: "/gpus",                         label: "GPU Types"     },
+                    { href: "/best-value",                   label: "Best Value"    },
+                    { href: "/location/us",                  label: "🇺🇸 US Servers" },
+                    { href: "/location/eu",                  label: "🇪🇺 EU Servers" },
+                    { href: "/location/apac",                label: "🌏 APAC Servers"},
                   ].map((l) => (
                     <a key={l.href} href={l.href} className="footer-link block text-xs transition-colors">
                       {l.label}
@@ -156,9 +158,9 @@ export default function RootLayout({
                 </div>
               </div>
 
-              {/* Compare + Dev */}
+              {/* Compare + Resources */}
               <div>
-                <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Compare</p>
+                <p className="text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Compare & More</p>
                 <div className="space-y-2.5">
                   {[
                     { href: "/compare/lambda-labs-vs-runpod",      label: "Lambda vs RunPod"     },

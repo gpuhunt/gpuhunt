@@ -6,6 +6,7 @@ export interface Provider {
   affiliate_url: string | null;
   logo_url: string | null;
   description: string | null;
+  credits_usd: number | null;
   updated_at: string;
 }
 

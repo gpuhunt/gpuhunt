@@ -46,9 +46,27 @@ function fmtShort(price: number | null, currency: string) {
   return `${sym}${price < 10000 ? price.toFixed(0) : price.toLocaleString()}`;
 }
 
+// Map country/region codes → flag emoji
+const LOCATION_FLAGS: Record<string, string> = {
+  US:"🇺🇸", CA:"🇨🇦", GB:"🇬🇧", DE:"🇩🇪", FR:"🇫🇷", NL:"🇳🇱",
+  FI:"🇫🇮", SE:"🇸🇪", NO:"🇳🇴", PL:"🇵🇱", ES:"🇪🇸", IT:"🇮🇹",
+  PT:"🇵🇹", RO:"🇷🇴", CZ:"🇨🇿", SK:"🇸🇰", HU:"🇭🇺", GR:"🇬🇷",
+  BG:"🇧🇬", HR:"🇭🇷", SI:"🇸🇮", LT:"🇱🇹", IS:"🇮🇸", IN:"🇮🇳",
+  JP:"🇯🇵", NRT:"🇯🇵", KR:"🇰🇷", AU:"🇦🇺", SG:"🇸🇬", HK:"🇭🇰",
+  TW:"🇹🇼", TH:"🇹🇭", VN:"🇻🇳", CN:"🇨🇳", BR:"🇧🇷", MX:"🇲🇽",
+  EU:"🇪🇺", "EU-FR":"🇫🇷",
+};
+
+function locationFlag(loc: string | null): string {
+  if (!loc) return "";
+  const key = loc.split("-")[0].split("_")[0].toUpperCase();
+  return LOCATION_FLAGS[loc.toUpperCase()] ?? LOCATION_FLAGS[key] ?? "";
+}
+
 export default function ServerTable({ servers: initial }: { servers: ServerWithProvider[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("price_monthly");
   const [sortAsc, setSortAsc] = useState(true);
+  const [compact, setCompact] = useState(false);
 
   const servers = [...initial].sort((a, b) => {
     const av = a[sortKey] ?? Infinity;
@@ -63,10 +81,11 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
 
   function Th({ label, field }: { label: string; field: SortKey }) {
     const active = sortKey === field;
+    const thPy = compact ? "py-1.5" : "py-3";
     return (
       <th
         onClick={() => handleSort(field)}
-        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap"
+        className={`px-4 ${thPy} text-left text-xs font-semibold uppercase tracking-wider cursor-pointer select-none whitespace-nowrap`}
         style={{
           color: active ? "var(--accent-light)" : "var(--text-muted)",
           transition: "color 0.15s",
@@ -98,142 +117,182 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
     );
   }
 
+  const py = compact ? "py-1.5" : "py-3";
+
   return (
-    <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
-      <table className="min-w-full text-sm">
-        {/* Header */}
-        <thead>
-          <tr style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-              Provider
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              GPU
-            </th>
-            <Th label="GPUs" field="gpu_count" />
-            <Th label="VRAM" field="gpu_vram_gb" />
-            <Th label="Cores" field="cpu_cores" />
-            <Th label="RAM" field="ram_gb" />
-            <Th label="$/mo" field="price_monthly" />
-            <Th label="$/hr" field="price_hourly" />
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-              $/GB·hr
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              Location
-            </th>
-            <th className="px-4 py-3 w-24" />
-          </tr>
-        </thead>
+    <div>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+          {servers.length} result{servers.length !== 1 ? "s" : ""}
+        </span>
+        <div className="flex items-center gap-1">
+          <span className="text-xs mr-1.5" style={{ color: "var(--text-muted)" }}>Density:</span>
+          <button
+            onClick={() => setCompact(false)}
+            className="px-2.5 py-1 rounded text-xs font-medium transition-colors"
+            style={{
+              background: !compact ? "var(--accent)" : "var(--surface)",
+              color: !compact ? "#fff" : "var(--text-muted)",
+              border: "1px solid",
+              borderColor: !compact ? "var(--accent)" : "var(--border)",
+            }}
+          >
+            Comfortable
+          </button>
+          <button
+            onClick={() => setCompact(true)}
+            className="px-2.5 py-1 rounded text-xs font-medium transition-colors"
+            style={{
+              background: compact ? "var(--accent)" : "var(--surface)",
+              color: compact ? "#fff" : "var(--text-muted)",
+              border: "1px solid",
+              borderColor: compact ? "var(--accent)" : "var(--border)",
+            }}
+          >
+            Compact
+          </button>
+        </div>
+      </div>
 
-        <tbody>
-          {servers.map((s, i) => (
-            <tr
-              key={s.id}
-              style={{
-                borderTop: i === 0 ? "none" : "1px solid var(--border)",
-                transition: "background 0.1s",
-              }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
-            >
-              {/* Provider */}
-              <td className="px-4 py-3 whitespace-nowrap">
-                <a
-                  href={`/provider/${s.provider_slug}`}
-                  className="inline-flex items-center gap-2 text-xs font-medium transition-colors"
-                  style={{ color: "var(--text-secondary)" }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-primary)")}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")}
-                >
-                  <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={18} />
-                  {s.provider_name}
-                </a>
-              </td>
-
-              {/* GPU */}
-              <td className="px-4 py-3 whitespace-nowrap">
-                {s.gpu_model ? (
-                  <a href={`/servers?gpu_model=${encodeURIComponent(s.gpu_model)}`}>
-                    <span className={`badge ${gpuBadge(s.gpu_model)}`} style={{ fontSize: "11px" }}>
-                      {s.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
-                    </span>
-                  </a>
-                ) : (
-                  <span style={{ color: "var(--text-muted)" }}>—</span>
-                )}
-              </td>
-
-              {/* GPUs count */}
-              <td className="px-4 py-3 text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
-                {s.gpu_count > 0 ? (
-                  <span className="font-medium">{s.gpu_count}×</span>
-                ) : "—"}
-              </td>
-
-              {/* VRAM */}
-              <td className="px-4 py-3 text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
-                {s.gpu_vram_gb ? `${s.gpu_vram_gb} GB` : "—"}
-              </td>
-
-              {/* Cores */}
-              <td className="px-4 py-3 text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
-                {s.cpu_cores ?? "—"}
-              </td>
-
-              {/* RAM */}
-              <td className="px-4 py-3 text-sm tabular-nums" style={{ color: "var(--text-secondary)" }}>
-                {s.ram_gb ? `${s.ram_gb} GB` : "—"}
-              </td>
-
-              {/* Monthly price */}
-              <td className="px-4 py-3 whitespace-nowrap">
-                <span className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                  {fmtShort(s.price_monthly, s.currency)}
-                </span>
-                <span className="text-xs ml-0.5" style={{ color: "var(--text-muted)" }}>/mo</span>
-              </td>
-
-              {/* Hourly price */}
-              <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                {s.price_hourly ? fmt(s.price_hourly, s.currency) : "—"}
-              </td>
-
-              {/* $/GB VRAM per hour */}
-              <td className="px-4 py-3 text-xs tabular-nums whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                {s.price_hourly && s.gpu_vram_gb && s.gpu_count > 0
-                  ? (() => {
-                      const totalVram = s.gpu_vram_gb * s.gpu_count;
-                      const perGb = s.price_hourly / totalVram;
-                      const sym = s.currency === "EUR" ? "€" : "$";
-                      return `${sym}${perGb < 0.01 ? perGb.toFixed(4) : perGb.toFixed(3)}`;
-                    })()
-                  : "—"}
-              </td>
-
-              {/* Location */}
-              <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: "var(--text-muted)" }}>
-                {s.location ?? "—"}
-              </td>
-
-              {/* Action */}
-              <td className="px-4 py-3">
-                <a
-                  href={s.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs whitespace-nowrap"
-                >
-                  View
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M2 5h6M5 2.5l2.5 2.5L5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </a>
-              </td>
+      <div className="overflow-x-auto rounded-xl" style={{ border: "1px solid var(--border)" }}>
+        <table className="min-w-full text-sm">
+          {/* Header */}
+          <thead>
+            <tr style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
+              <th className={`px-4 ${py} text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap`} style={{ color: "var(--text-muted)" }}>
+                Provider
+              </th>
+              <th className={`px-4 ${py} text-left text-xs font-semibold uppercase tracking-wider`} style={{ color: "var(--text-muted)" }}>
+                GPU
+              </th>
+              <Th label="GPUs" field="gpu_count" />
+              <Th label="VRAM" field="gpu_vram_gb" />
+              <Th label="Cores" field="cpu_cores" />
+              <Th label="RAM" field="ram_gb" />
+              <Th label="$/mo" field="price_monthly" />
+              <Th label="$/hr" field="price_hourly" />
+              <th className={`px-4 ${py} text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap`} style={{ color: "var(--text-muted)" }}>
+                $/GB·hr
+              </th>
+              <th className={`px-4 ${py} text-left text-xs font-semibold uppercase tracking-wider`} style={{ color: "var(--text-muted)" }}>
+                Location
+              </th>
+              <th className={`px-4 ${py} w-24`} />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {servers.map((s, i) => (
+              <tr
+                key={s.id}
+                style={{
+                  borderTop: i === 0 ? "none" : "1px solid var(--border)",
+                  transition: "background 0.1s",
+                }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              >
+                {/* Provider */}
+                <td className={`px-4 ${py} whitespace-nowrap`}>
+                  <a
+                    href={`/provider/${s.provider_slug}`}
+                    className="inline-flex items-center gap-2 text-xs font-medium transition-colors"
+                    style={{ color: "var(--text-secondary)" }}
+                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-primary)")}
+                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")}
+                  >
+                    <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={18} />
+                    {s.provider_name}
+                  </a>
+                </td>
+
+                {/* GPU */}
+                <td className={`px-4 ${py} whitespace-nowrap`}>
+                  {s.gpu_model ? (
+                    <a href={`/servers?gpu_model=${encodeURIComponent(s.gpu_model)}`}>
+                      <span className={`badge ${gpuBadge(s.gpu_model)}`} style={{ fontSize: "11px" }}>
+                        {s.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
+                      </span>
+                    </a>
+                  ) : (
+                    <span style={{ color: "var(--text-muted)" }}>—</span>
+                  )}
+                </td>
+
+                {/* GPUs count */}
+                <td className={`px-4 ${py} text-sm tabular-nums`} style={{ color: "var(--text-secondary)" }}>
+                  {s.gpu_count > 0 ? (
+                    <span className="font-medium">{s.gpu_count}×</span>
+                  ) : "—"}
+                </td>
+
+                {/* VRAM */}
+                <td className={`px-4 ${py} text-sm tabular-nums`} style={{ color: "var(--text-secondary)" }}>
+                  {s.gpu_vram_gb ? `${s.gpu_vram_gb} GB` : "—"}
+                </td>
+
+                {/* Cores */}
+                <td className={`px-4 ${py} text-sm tabular-nums`} style={{ color: "var(--text-secondary)" }}>
+                  {s.cpu_cores ?? "—"}
+                </td>
+
+                {/* RAM */}
+                <td className={`px-4 ${py} text-sm tabular-nums`} style={{ color: "var(--text-secondary)" }}>
+                  {s.ram_gb ? `${s.ram_gb} GB` : "—"}
+                </td>
+
+                {/* Monthly price */}
+                <td className={`px-4 ${py} whitespace-nowrap`}>
+                  <span className="text-sm font-bold tabular-nums" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                    {fmtShort(s.price_monthly, s.currency)}
+                  </span>
+                  <span className="text-xs ml-0.5" style={{ color: "var(--text-muted)" }}>/mo</span>
+                </td>
+
+                {/* Hourly price */}
+                <td className={`px-4 ${py} text-xs tabular-nums whitespace-nowrap`} style={{ color: "var(--text-muted)" }}>
+                  {s.price_hourly ? fmt(s.price_hourly, s.currency) : "—"}
+                </td>
+
+                {/* $/GB VRAM per hour */}
+                <td className={`px-4 ${py} text-xs tabular-nums whitespace-nowrap`} style={{ color: "var(--text-muted)" }}>
+                  {s.price_hourly && s.gpu_vram_gb && s.gpu_count > 0
+                    ? (() => {
+                        const totalVram = s.gpu_vram_gb * s.gpu_count;
+                        const perGb = s.price_hourly / totalVram;
+                        const sym = s.currency === "EUR" ? "€" : "$";
+                        return `${sym}${perGb < 0.01 ? perGb.toFixed(4) : perGb.toFixed(3)}`;
+                      })()
+                    : "—"}
+                </td>
+
+                {/* Location */}
+                <td className={`px-4 ${py} text-xs whitespace-nowrap`} style={{ color: "var(--text-muted)" }}>
+                  {s.location
+                    ? <>{locationFlag(s.location) && <span className="mr-1">{locationFlag(s.location)}</span>}{s.location}</>
+                    : "—"}
+                </td>
+
+                {/* Action */}
+                <td className={`px-4 ${py}`}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs whitespace-nowrap"
+                  >
+                    View
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                      <path d="M2 5h6M5 2.5l2.5 2.5L5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

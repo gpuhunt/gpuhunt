@@ -49,6 +49,14 @@ export default async function GpuModelPage({ params }: PageProps) {
 
   const shortName = gpuModel.replace("NVIDIA ", "").replace("AMD Instinct ", "");
 
+  // Save % vs average
+  const avgHourly = withHourly.length > 1
+    ? withHourly.reduce((sum, s) => sum + (s.price_hourly ?? 0), 0) / withHourly.length
+    : null;
+  const savePct = avgHourly && cheapest?.price_hourly
+    ? Math.round((1 - cheapest.price_hourly / avgHourly) * 100)
+    : null;
+
   // JSON-LD structured data
   const jsonLd = {
     "@context": "https://schema.org",
@@ -104,6 +112,19 @@ export default async function GpuModelPage({ params }: PageProps) {
                   ${cheapest.price_hourly.toFixed(2)}
                 </div>
                 <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>From /hr</div>
+                {savePct != null && savePct >= 10 && (
+                  <div className="text-xs mt-1 font-semibold" style={{ color: "var(--green)" }}>
+                    Save {savePct}% vs avg
+                  </div>
+                )}
+              </div>
+            )}
+            {avgHourly != null && withHourly.length > 1 && (
+              <div className="text-center">
+                <div className="text-2xl font-bold tabular-nums" style={{ color: "var(--text-secondary)" }}>
+                  ${avgHourly.toFixed(2)}
+                </div>
+                <div className="text-xs mt-0.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Avg /hr</div>
               </div>
             )}
             {cheapest?.price_monthly != null && (

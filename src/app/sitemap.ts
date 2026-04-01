@@ -17,9 +17,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: baseUrl,                     lastModified: now, changeFrequency: "daily",  priority: 1    },
-    { url: `${baseUrl}/servers`,        lastModified: now, changeFrequency: "hourly", priority: 0.95 },
-    { url: `${baseUrl}/methodology`,    lastModified: now, changeFrequency: "monthly",priority: 0.6  },
+    { url: baseUrl,                         lastModified: now, changeFrequency: "daily",   priority: 1    },
+    { url: `${baseUrl}/servers`,            lastModified: now, changeFrequency: "hourly",  priority: 0.95 },
+    { url: `${baseUrl}/gpus`,               lastModified: now, changeFrequency: "daily",   priority: 0.9  },
+    { url: `${baseUrl}/best-value`,         lastModified: now, changeFrequency: "hourly",  priority: 0.9  },
+    { url: `${baseUrl}/location/us`,        lastModified: now, changeFrequency: "daily",   priority: 0.85 },
+    { url: `${baseUrl}/location/eu`,        lastModified: now, changeFrequency: "daily",   priority: 0.85 },
+    { url: `${baseUrl}/location/apac`,      lastModified: now, changeFrequency: "daily",   priority: 0.85 },
+    { url: `${baseUrl}/methodology`,        lastModified: now, changeFrequency: "monthly", priority: 0.6  },
   ];
 
   const providerPages: MetadataRoute.Sitemap = providers.map((p) => ({
