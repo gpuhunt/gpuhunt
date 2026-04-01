@@ -88,9 +88,12 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
         className="rounded-xl text-center py-20"
         style={{ border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-muted)" }}
       >
-        <div className="text-4xl mb-3 opacity-20">⊘</div>
-        <div className="text-sm">No servers match your filters.</div>
-        <div className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Try adjusting or clearing your filters.</div>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="mx-auto mb-4 opacity-20">
+          <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M10 16h12M16 10v12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" transform="rotate(45 16 16)"/>
+        </svg>
+        <div className="text-sm font-medium">No servers match your filters</div>
+        <div className="text-xs mt-1.5">Try adjusting or clearing your filters.</div>
       </div>
     );
   }
