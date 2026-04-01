@@ -40,7 +40,7 @@ export default function RootLayout({
           }}
         >
           <span className="opacity-60 mr-2">✦</span>
-          Live pricing from 10+ providers · Updated every 6 hours · Free to use
+          Live pricing from 16+ providers · Updated every 6 hours · Free to use
           <span className="opacity-60 ml-2">✦</span>
         </div>
 
@@ -81,7 +81,7 @@ export default function RootLayout({
               </a>
 
               {/* Nav links */}
-              <div className="hidden md:flex items-center gap-1">
+              <div className="flex items-center gap-0.5 sm:gap-1">
                 {[
                   { href: "/servers", label: "All Servers" },
                   { href: "/servers?min_gpu_count=1", label: "GPU Servers" },
@@ -90,17 +90,17 @@ export default function RootLayout({
                   <a
                     key={link.href}
                     href={link.href}
-                    className="nav-link px-3 py-1.5 rounded-md text-sm transition-colors"
+                    className="nav-link px-2 sm:px-3 py-1.5 rounded-md text-xs sm:text-sm transition-colors whitespace-nowrap"
                   >
                     {link.label}
                   </a>
                 ))}
               </div>
 
-              {/* CTA */}
+              {/* CTA — hidden on mobile to avoid crowding */}
               <a
                 href="/servers?min_gpu_count=1"
-                className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm"
+                className="btn-primary hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm"
               >
                 Find a GPU
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

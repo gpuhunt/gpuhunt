@@ -33,8 +33,9 @@ export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
   const params: (string | number)[] = [];
 
   if (filters.gpu_model) {
-    conditions.push("s.gpu_model = ?");
-    params.push(filters.gpu_model);
+    // Use starts-with LIKE so "NVIDIA H100" matches "NVIDIA H100 SXM5", "NVIDIA H100 PCIe", etc.
+    conditions.push("s.gpu_model LIKE ?");
+    params.push(`${filters.gpu_model}%`);
   }
   if (filters.provider) {
     conditions.push("p.slug = ?");
@@ -96,8 +97,8 @@ export function getServerCount(filters: ServerFilters = {}): number {
   const params: (string | number)[] = [];
 
   if (filters.gpu_model) {
-    conditions.push("s.gpu_model = ?");
-    params.push(filters.gpu_model);
+    conditions.push("s.gpu_model LIKE ?");
+    params.push(`${filters.gpu_model}%`);
   }
   if (filters.provider) {
     conditions.push("p.slug = ?");

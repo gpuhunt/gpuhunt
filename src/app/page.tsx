@@ -135,7 +135,14 @@ export default function HomePage() {
             { value: gpuModels.length.toString(),   label: "GPU models",        sub: "H100 · A100 · more" },
             { value: providers.length.toString(),   label: "Providers",         sub: "global coverage"    },
           ].map((s, i) => (
-            <div key={s.label} className="text-center py-7" style={{ borderRight: i < 3 ? "1px solid var(--border)" : "none" }}>
+            <div key={s.label}
+              className={`text-center py-7 ${
+                i === 0 ? "border-r" :
+                i === 1 ? "sm:border-r" :
+                i === 2 ? "border-r" : ""
+              }`}
+              style={{ borderColor: "var(--border)" }}
+            >
               <div className="text-3xl font-bold tabular-nums mb-0.5" style={{ letterSpacing: "-0.04em", color: "var(--text-primary)" }}>
                 {s.value}
               </div>
@@ -163,7 +170,7 @@ export default function HomePage() {
               {gpuModels.slice(0, 15).map((gpu) => {
                 const meta = gpuMeta(gpu.gpu_model);
                 return (
-                  <a key={gpu.gpu_model} href={`/gpu/${encodeURIComponent(gpu.gpu_model)}`} className="card-hover block p-4">
+                  <a key={gpu.gpu_model} href={`/servers?gpu_model=${encodeURIComponent(gpu.gpu_model)}`} className="card-hover block p-4">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="text-sm font-semibold leading-tight" style={{ color: "var(--text-primary)" }}>
                         {gpu.gpu_model.replace("NVIDIA ", "").replace("AMD ", "")}

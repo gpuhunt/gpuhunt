@@ -64,7 +64,7 @@ export default async function ProviderPage({ params }: PageProps) {
               href={provider.affiliate_url ?? provider.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-accent inline-flex items-center px-4 py-2 text-xs mt-4"
+              className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs mt-4"
             >
               Visit {provider.name} →
             </a>
