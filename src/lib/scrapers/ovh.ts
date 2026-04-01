@@ -149,18 +149,27 @@ function parseGpuFromAddons(families: OvhAddonFamily[]): {
   const match = defaultAddon.match(/gpu-(\d+)x(nvidia-[\w-]+)/i);
   if (match) {
     const count = parseInt(match[1]);
-    const rawModel = match[2].replace(/-/g, " ").replace(/nvidia/i, "NVIDIA").trim();
-    // Clean up model name
-    const model = rawModel.split(/\s+/).slice(0, 3).join(" ").toUpperCase();
+    const rawModel = match[2].replace(/-/g, " ").trim().toUpperCase();
 
-    // Known VRAM mappings
-    const vramMap: Record<string, number> = {
-      "L4": 24, "L40": 48, "L40S": 48,
-      "A100": 80, "H100": 80, "H200": 141,
-      "A40": 48, "A30": 24, "A10": 24,
-    };
-    const gpuName = model.replace("NVIDIA ", "");
-    const vram = vramMap[gpuName] || null;
+    // Normalize to canonical name
+    let model: string | null = null;
+    let vram: number | null = null;
+
+    if (rawModel.includes("H200"))      { model = "NVIDIA H200"; vram = 141; }
+    else if (rawModel.includes("H100")) { model = "NVIDIA H100"; vram = 80;  }
+    else if (rawModel.includes("A100")) { model = "NVIDIA A100"; vram = 80;  }
+    else if (rawModel.includes("L40S")) { model = "NVIDIA L40S"; vram = 48;  }
+    else if (rawModel.includes("L40"))  { model = "NVIDIA L40";  vram = 48;  }
+    else if (rawModel.includes("L4"))   { model = "NVIDIA L4";   vram = 24;  }
+    else if (rawModel.includes("A40"))  { model = "NVIDIA A40";  vram = 48;  }
+    else if (rawModel.includes("A10G")) { model = "NVIDIA A10G"; vram = 24;  }
+    else if (rawModel.includes("A10"))  { model = "NVIDIA A10";  vram = 24;  }
+    else {
+      // Fallback: title-case the raw model
+      model = "NVIDIA " + rawModel.replace("NVIDIA ", "").split(" ").map(
+        (w: string) => w.charAt(0) + w.slice(1).toLowerCase()
+      ).join(" ");
+    }
 
     return { model, count, vram };
   }

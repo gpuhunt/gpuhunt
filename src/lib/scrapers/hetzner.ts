@@ -108,6 +108,40 @@ export async function scrapeHetzner(): Promise<ScraperResult> {
   return result;
 }
 
+function normalizeHetznerGpu(raw: string): string | null {
+  const u = raw.toUpperCase();
+  // Skip consumer/gaming GPUs — Hetzner sells these as bare metal but they're not AI chips
+  if (u.includes("GTX") || u.includes("GEFORCE") || u.includes("QUADRO P") || u.includes("TESLA")) return null;
+  // Normalize to canonical names
+  if (u.includes("RTX 6000 ADA") || u.includes("RTX6000")) return "NVIDIA RTX 6000 Ada";
+  if (u.includes("RTX 5090")) return "NVIDIA RTX 5090";
+  if (u.includes("RTX 5080")) return "NVIDIA RTX 5080";
+  if (u.includes("RTX 4090")) return "NVIDIA RTX 4090";
+  if (u.includes("RTX 4080")) return "NVIDIA RTX 4080";
+  if (u.includes("RTX 3090")) return "NVIDIA RTX 3090";
+  if (u.includes("RTX 3080")) return "NVIDIA RTX 3080";
+  if (u.includes("A100")) return "NVIDIA A100";
+  if (u.includes("H100")) return "NVIDIA H100";
+  if (u.includes("H200")) return "NVIDIA H200";
+  if (u.includes("L40S")) return "NVIDIA L40S";
+  if (u.includes("L40")) return "NVIDIA L40";
+  if (u.includes("L4")) return "NVIDIA L4";
+  if (u.includes("A40")) return "NVIDIA A40";
+  if (u.includes("A30")) return "NVIDIA A30";
+  if (u.includes("A10G")) return "NVIDIA A10G";
+  if (u.includes("A10")) return "NVIDIA A10";
+  if (u.includes("A6000")) return "NVIDIA RTX A6000";
+  if (u.includes("A5000")) return "NVIDIA RTX A5000";
+  if (u.includes("A4000")) return "NVIDIA RTX A4000";
+  if (u.includes("RTX PRO 6000")) return "NVIDIA RTX PRO 6000";
+  if (u.includes("RTX PRO 4500")) return "NVIDIA RTX PRO 4500";
+  if (u.includes("RTX 5000")) return "NVIDIA RTX 5000 Ada";
+  if (u.includes("RTX 4000")) return "NVIDIA RTX 4000 Ada";
+  if (u.includes("RTX 2000")) return "NVIDIA RTX 2000 Ada";
+  // Return null for anything unrecognized (bare metal without GPU or old consumer)
+  return null;
+}
+
 function extractGpuFromDescription(descriptions: string[]): {
   model: string | null;
   count: number;
@@ -125,7 +159,8 @@ function extractGpuFromDescription(descriptions: string[]): {
       const count = countMatch ? parseInt(countMatch[1]) : 1;
       const vramMatch = d.match(/(\d+)\s*GB/i);
       const vram = vramMatch ? parseInt(vramMatch[1]) : null;
-      const model = d.replace(/^GPU:\s*/i, "").replace(/^\d+\s*x\s*/i, "").trim();
+      const rawModel = d.replace(/^GPU:\s*/i, "").replace(/^\d+\s*x\s*/i, "").trim();
+      const model = normalizeHetznerGpu(rawModel);
       return { model, count, vram };
     }
   }

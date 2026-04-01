@@ -146,7 +146,7 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
               {/* GPU */}
               <td className="px-4 py-3 whitespace-nowrap">
                 {s.gpu_model ? (
-                  <a href={`/gpu/${encodeURIComponent(s.gpu_model)}`}>
+                  <a href={`/servers?gpu_model=${encodeURIComponent(s.gpu_model)}`}>
                     <span className={`badge ${gpuBadge(s.gpu_model)}`} style={{ fontSize: "11px" }}>
                       {s.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
                     </span>
