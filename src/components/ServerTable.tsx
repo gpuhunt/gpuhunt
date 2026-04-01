@@ -2,6 +2,7 @@
 
 import { ServerWithProvider } from "@/lib/types";
 import { useState } from "react";
+import ProviderLogo from "./ProviderLogo";
 
 type SortKey = "price_monthly" | "price_hourly" | "gpu_count" | "ram_gb" | "gpu_vram_gb" | "cpu_cores";
 
@@ -134,11 +135,12 @@ export default function ServerTable({ servers: initial }: { servers: ServerWithP
               <td className="px-4 py-3 whitespace-nowrap">
                 <a
                   href={`/provider/${s.provider_slug}`}
-                  className="text-xs font-medium transition-colors"
+                  className="inline-flex items-center gap-2 text-xs font-medium transition-colors"
                   style={{ color: "var(--text-secondary)" }}
-                  onMouseEnter={(e) => ((e.target as HTMLElement).style.color = "var(--text-primary)")}
-                  onMouseLeave={(e) => ((e.target as HTMLElement).style.color = "var(--text-secondary)")}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-primary)")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")}
                 >
+                  <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={18} />
                   {s.provider_name}
                 </a>
               </td>

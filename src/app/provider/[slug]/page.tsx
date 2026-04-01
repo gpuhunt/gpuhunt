@@ -1,5 +1,6 @@
 import { getProviderBySlug, getServersByProvider, getProviders } from "@/lib/db";
 import ServerTable from "@/components/ServerTable";
+import ProviderLogo from "@/components/ProviderLogo";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -66,7 +67,10 @@ export default async function ProviderPage({ params }: PageProps) {
       >
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">{provider.name}</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <ProviderLogo slug={provider.slug} name={provider.name} size={32} />
+              <h1 className="text-2xl font-bold text-white">{provider.name}</h1>
+            </div>
             {provider.description && (
               <p className="text-sm max-w-md" style={{ color: "var(--text-secondary)" }}>
                 {provider.description}

@@ -71,6 +71,39 @@ export default function FilterSidebar({ gpuModels, providers }: FilterSidebarPro
       </div>
 
       <div className="space-y-5">
+        {/* GPU Make */}
+        <div>
+          <label style={labelStyle}>GPU Make</label>
+          <div className="flex gap-1.5">
+            {[
+              { label: "All",    value: "" },
+              { label: "NVIDIA", value: "NVIDIA" },
+              { label: "AMD",    value: "AMD Instinct" },
+            ].map((opt) => {
+              const currentMake = sp.get("gpu_model") || "";
+              const isActive =
+                opt.value === ""
+                  ? !currentMake.startsWith("NVIDIA") && !currentMake.startsWith("AMD")
+                  : currentMake.startsWith(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => update("gpu_model", opt.value)}
+                  className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    background: isActive ? "var(--accent)" : "var(--surface-2)",
+                    border: `1px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
+                    color: isActive ? "#fff" : "var(--text-secondary)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* GPU Model */}
         <div>
           <label style={labelStyle}>GPU Model</label>
@@ -84,7 +117,7 @@ export default function FilterSidebar({ gpuModels, providers }: FilterSidebarPro
             <option value="">All GPUs</option>
             {gpuModels.map((g) => (
               <option key={g.gpu_model} value={g.gpu_model}>
-                {g.gpu_model} ({g.count})
+                {g.gpu_model.replace("NVIDIA ", "").replace("AMD Instinct ", "")} ({g.count})
               </option>
             ))}
           </select>
