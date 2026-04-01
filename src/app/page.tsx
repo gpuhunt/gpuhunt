@@ -1,5 +1,6 @@
-import { getServers, getProviders, getServerCount, getGpuFamilyCounts } from "@/lib/db";
+import { getProviders, getServerCount, getGpuFamilyCounts, getBestDealsPerFamily, getServers } from "@/lib/db";
 import ProviderLogo from "@/components/ProviderLogo";
+import GeoDeals from "@/components/GeoDeals";
 
 // Providers that are peer marketplaces / spot-only — excluded from "Best Cloud Deals"
 const MARKETPLACE_PROVIDERS = ["vast", "salad"];
@@ -20,12 +21,9 @@ export default function HomePage() {
   const providers    = getProviders();
   const gpuFamilies  = getGpuFamilyCounts();
 
-  // Best cloud deals — proper datacenter providers only, one per GPU family to avoid duplicates
-  const cloudDeals   = getServers({
-    min_gpu_count: 1,
-    sort_by: "price_monthly",
+  // Best cloud deals — one per GPU family, diverse providers (no Hetzner bare metal dominating)
+  const cloudDeals = getBestDealsPerFamily({
     exclude_providers: MARKETPLACE_PROVIDERS,
-    available_only: true,
     limit: 6,
   });
 
@@ -210,79 +208,8 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── Best Cloud Provider Deals ── */}
-      {cloudDeals.length > 0 && (
-        <section className="py-16 px-4" style={{ borderTop: "1px solid var(--border)" }}>
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <h2 className="text-xl font-bold tracking-tight" style={{ letterSpacing: "-0.03em" }}>Best Cloud Provider Deals</h2>
-                <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                  Top-rated GPU servers from dedicated cloud providers
-                </p>
-              </div>
-              <a href="/servers?min_gpu_count=1" className="text-xs font-medium" style={{ color: "var(--accent-light)" }}>
-                See all {gpuCount} →
-              </a>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {cloudDeals.map((s, idx) => (
-                <div
-                  key={s.id}
-                  className={idx === 0 ? "gradient-border" : "card-hover"}
-                  style={{ padding: "20px", position: "relative" }}
-                >
-                  {idx === 0 && (
-                    <div className="absolute top-3 right-3 badge badge-green" style={{ fontSize: "9px" }}>
-                      TOP DEAL
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between mb-3">
-                    <a
-                      href={`/provider/${s.provider_slug}`}
-                      className="text-xs font-semibold transition-colors"
-                      style={{ color: "var(--accent-light)" }}
-                    >
-                      {s.provider_name}
-                    </a>
-                    {s.location && <span className="badge badge-muted" style={{ fontSize: "10px" }}>{s.location}</span>}
-                  </div>
-                  <div className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>
-                    {s.gpu_count}× {s.gpu_model?.replace("NVIDIA ", "").replace("AMD Instinct ", "").replace("AMD ", "")}
-                    {s.gpu_vram_gb ? ` ${s.gpu_vram_gb}GB` : ""}
-                  </div>
-                  <div className="text-xs space-y-0.5 mb-4" style={{ color: "var(--text-muted)" }}>
-                    {s.cpu_cores && <div>{s.cpu_cores} vCPU{s.ram_gb ? ` · ${s.ram_gb} GB RAM` : ""}</div>}
-                    {s.storage_type && s.storage_gb && <div>{s.storage_gb} GB {s.storage_type}</div>}
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      {s.price_hourly && (
-                        <div className="text-2xl font-bold tabular-nums" style={{ letterSpacing: "-0.04em" }}>
-                          ${s.price_hourly.toFixed(2)}<span className="text-sm font-normal ml-0.5" style={{ color: "var(--text-muted)" }}>/hr</span>
-                        </div>
-                      )}
-                      {s.price_monthly && (
-                        <div className="text-xs" style={{ color: "var(--text-muted)" }}>{fmt(s.price_monthly, s.currency)}/mo</div>
-                      )}
-                    </div>
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs"
-                    >
-                      Get server
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6h7M6.5 3.5l2.5 2.5-2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ── Best GPU Deals — geo-personalized client component ── */}
+      <GeoDeals fallback={cloudDeals} totalGpuCount={gpuCount} />
 
       {/* ── Spot & Marketplace Pricing ── */}
       {spotDeals.length > 0 && (

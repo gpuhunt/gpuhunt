@@ -287,6 +287,75 @@ export function getGpuPriceHistory(gpuModel: string, days = 30): Array<{ recorde
   `).all(`${gpuModel}%`, since) as Array<{ recorded_at: string; avg_price_hourly: number | null; min_price_hourly: number | null }>;
 }
 
+// Location prefix patterns per region — uses LIKE matching so "US" matches "US", "US-EAST", "US-TX-3", etc.
+export const REGION_LOCATION_PREFIXES: Record<string, string[]> = {
+  "us":   ["US", "CA"],
+  "eu":   ["EU", "DE", "FR", "NL", "GB", "FI", "SE", "NO", "PL", "ES", "IT", "PT", "RO", "CZ", "SK", "HU", "GR", "BG", "HR", "SI", "LT", "IS"],
+  "apac": ["JP", "NRT", "AU", "SG", "KR", "IN", "HK", "TW", "TH", "VN", "CN"],
+};
+
+/**
+ * Returns the best (cheapest hourly) deal for each GPU family.
+ * Optionally filters by geographic region using LIKE prefix matching on location.
+ * exclude_providers filters out marketplace/spot providers.
+ */
+export function getBestDealsPerFamily(opts: {
+  region?: string;
+  exclude_providers?: string[];
+  limit?: number;
+} = {}): ServerWithProvider[] {
+  const db = getDb();
+  const { region, exclude_providers = [], limit = 8 } = opts;
+
+  const conditions: string[] = ["s.available = 1", "s.gpu_count >= 1", "s.price_hourly IS NOT NULL", "s.gpu_model IS NOT NULL"];
+  const params: (string | number)[] = [];
+
+  // Location filter — LIKE prefix matching
+  if (region) {
+    const prefixes = REGION_LOCATION_PREFIXES[region] ?? [];
+    if (prefixes.length > 0) {
+      const locClauses = prefixes.map(() => "s.location LIKE ?").join(" OR ");
+      conditions.push(`(${locClauses})`);
+      params.push(...prefixes.map((p) => `${p}%`));
+    }
+  }
+
+  // Exclude marketplace providers
+  if (exclude_providers.length > 0) {
+    const placeholders = exclude_providers.map(() => "?").join(", ");
+    conditions.push(`p.slug NOT IN (${placeholders})`);
+    params.push(...exclude_providers);
+  }
+
+  const where = `WHERE ${conditions.join(" AND ")}`;
+  const sql = `
+    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website
+    FROM servers s
+    JOIN providers p ON s.provider_id = p.id
+    ${where}
+    ORDER BY s.price_hourly ASC
+    LIMIT 500
+  `;
+
+  const all = db.prepare(sql).all(...params) as ServerWithProvider[];
+
+  // One best deal per GPU family — deduplicate using GPU_FAMILIES prefix list
+  const seen = new Set<string>();
+  const deduped: ServerWithProvider[] = [];
+
+  for (const server of all) {
+    const family = GPU_FAMILIES.find((f) => server.gpu_model!.startsWith(f.family));
+    const key = family ? family.family : server.gpu_model!;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(server);
+      if (deduped.length >= limit) break;
+    }
+  }
+
+  return deduped;
+}
+
 export function getProviderGpuOverlap(slugA: string, slugB: string): string[] {
   const db = getDb();
   const rows = db.prepare(`
