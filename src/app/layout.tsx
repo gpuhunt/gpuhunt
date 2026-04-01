@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GpuHuntIcon } from "@/components/GpuHuntLogo";
+import { getProviders } from "@/lib/db";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,10 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GPUHunt — Compare GPU Server Prices",
   description:
-    "Real-time GPU server pricing from Lambda Labs, CoreWeave, RunPod, Vast.ai, Hyperstack, and 16+ more providers. Find the cheapest H100, A100, MI300X, or RTX 4090 instantly.",
+    "Real-time GPU server pricing from Lambda Labs, CoreWeave, RunPod, Vast.ai, Hyperstack, and more. Find the cheapest H100, A100, MI300X, or RTX 4090 instantly.",
   openGraph: {
     title: "GPUHunt — Compare GPU Server Prices",
-    description: "Real-time GPU server pricing across 16+ providers. Find the best deal for AI/ML.",
+    description: "Real-time GPU server pricing across 20+ providers. Find the best deal for AI/ML.",
     type: "website",
   },
 };
@@ -27,6 +28,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const providerCount = getProviders().length;
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased min-h-screen flex flex-col" style={{ background: "var(--background)", color: "var(--text-primary)" }}>
@@ -41,7 +43,7 @@ export default function RootLayout({
             letterSpacing: "0.04em",
           }}
         >
-          Live GPU pricing from 16+ providers &nbsp;·&nbsp; Free to use
+          Live GPU pricing from {providerCount}+ providers &nbsp;·&nbsp; Free to use
         </div>
 
         {/* ── Nav ── */}
