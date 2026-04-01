@@ -108,25 +108,25 @@ export default function GeoDeals({ fallback, totalGpuCount }: Props) {
             <div
               key={s.id}
               className={idx === 0 ? "gradient-border" : "card-hover"}
-              style={{ padding: "20px", position: "relative" }}
+              style={{ padding: "20px" }}
             >
-              {idx === 0 && (
-                <div className="absolute top-3 right-3 badge badge-green" style={{ fontSize: "9px" }}>
-                  TOP DEAL
-                </div>
-              )}
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 gap-2">
                 <a
                   href={`/provider/${s.provider_slug}`}
-                  className="inline-flex items-center gap-2 text-xs font-semibold transition-colors"
+                  className="inline-flex items-center gap-2 text-xs font-semibold transition-colors min-w-0"
                   style={{ color: "var(--accent-light)" }}
                 >
                   <ProviderLogo slug={s.provider_slug} name={s.provider_name} size={16} />
-                  {s.provider_name}
+                  <span className="truncate">{s.provider_name}</span>
                 </a>
-                {s.location && (
-                  <span className="badge badge-muted" style={{ fontSize: "10px" }}>{s.location}</span>
-                )}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {idx === 0 && (
+                    <span className="badge badge-green" style={{ fontSize: "9px" }}>TOP DEAL</span>
+                  )}
+                  {s.location && (
+                    <span className="badge badge-muted" style={{ fontSize: "10px" }}>{s.location}</span>
+                  )}
+                </div>
               </div>
               <div className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>
                 {s.gpu_count}×{" "}
