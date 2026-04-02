@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { getProviders, getServerCount, getGpuFamilyCounts, getBestDealsPerFamily, getServers } from "@/lib/db";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import ProviderLogo from "@/components/ProviderLogo";
@@ -7,7 +8,7 @@ import HeroSearch from "@/components/HeroSearch";
 const MARKETPLACE_PROVIDERS = ["vast", "salad"];
 
 // SVG icons for use cases — no emojis
-const USE_CASE_ICONS: Record<string, React.ReactNode> = {
+const USE_CASE_ICONS: Record<string, ReactNode> = {
   "llm-training": (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
