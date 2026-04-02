@@ -149,8 +149,49 @@ export default async function UseCasePage({ params }: PageProps) {
   const cheapest = allServers.filter((s) => s.price_hourly != null)[0];
   const uniqueProviders = [...new Set(allServers.map((s) => s.provider_name))];
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "GPUHunt", item: "https://gpu-hunt.com" },
+      { "@type": "ListItem", position: 2, name: "Use Cases", item: "https://gpu-hunt.com/use-case/llm-training" },
+      { "@type": "ListItem", position: 3, name: uc.title, item: `https://gpu-hunt.com/use-case/${uc.slug}` },
+    ],
+  };
+
+  const guideLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: uc.title,
+    description: uc.description,
+    url: `https://gpu-hunt.com/use-case/${uc.slug}`,
+    publisher: {
+      "@type": "Organization",
+      name: "GPUHunt",
+      url: "https://gpu-hunt.com",
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      name: `Recommended GPUs for ${uc.title}`,
+      itemListElement: uc.gpuFamilies.map((family, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: family,
+        url: `https://gpu-hunt.com/gpu/${encodeURIComponent(family)}`,
+      })),
+    },
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(guideLd) }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>

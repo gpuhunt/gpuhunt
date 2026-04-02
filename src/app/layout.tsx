@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { GpuHuntIcon } from "@/components/GpuHuntLogo";
+import CurrencySelector from "@/components/CurrencySelector";
 import { getProviders } from "@/lib/db";
 
 const geistSans = Geist({
@@ -92,6 +93,7 @@ export default function RootLayout({
                   { href: "/best-value",                    label: "Best Value" },
                   { href: "/providers",                     label: "Providers"  },
                   { href: "/use-case/llm-training",         label: "Use Cases"  },
+                  { href: "/blog",                           label: "Blog"       },
                 ].map((link) => (
                   <a
                     key={link.href}
@@ -103,16 +105,19 @@ export default function RootLayout({
                 ))}
               </div>
 
-              {/* CTA */}
-              <a
-                href="/servers?min_gpu_count=1"
-                className="btn-primary hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm"
-              >
-                Find a GPU
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                  <path d="M2.5 6.5h8M7.5 3.5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </a>
+              {/* Right side: currency + CTA */}
+              <div className="flex items-center gap-2">
+                <CurrencySelector />
+                <a
+                  href="/servers?min_gpu_count=1"
+                  className="btn-primary hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm"
+                >
+                  Find a GPU
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                    <path d="M2.5 6.5h8M7.5 3.5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
         </nav>
@@ -168,9 +173,9 @@ export default function RootLayout({
                     { href: "/providers",                    label: "All Providers" },
                     { href: "/gpus",                         label: "GPU Types"     },
                     { href: "/best-value",                   label: "Best Value"    },
-                    { href: "/location/us",                  label: "🇺🇸 US Servers" },
-                    { href: "/location/eu",                  label: "🇪🇺 EU Servers" },
-                    { href: "/location/apac",                label: "🌏 APAC Servers"},
+                    { href: "/location/us",                  label: "US Servers"   },
+                    { href: "/location/eu",                  label: "EU Servers"   },
+                    { href: "/location/apac",                label: "APAC Servers" },
                   ].map((l) => (
                     <a key={l.href} href={l.href} className="footer-link block text-xs transition-colors">
                       {l.label}
@@ -208,6 +213,7 @@ export default function RootLayout({
                     { href: "/compare/hyperstack-vs-lambda-labs",  label: "Hyperstack vs Lambda" },
                     { href: "/api/servers",                         label: "JSON API"             },
                     { href: "/methodology",                         label: "Methodology"          },
+                    { href: "/blog",                                 label: "Blog"                 },
                   ].map((l) => (
                     <a key={l.href} href={l.href} className="footer-link block text-xs transition-colors">
                       {l.label}

@@ -1,4 +1,5 @@
 import { getProviders, getGpuModels } from "@/lib/db";
+import { BLOG_POSTS } from "@/lib/blog-posts";
 import type { MetadataRoute } from "next";
 
 const USE_CASE_SLUGS = [
@@ -18,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl,                         lastModified: now, changeFrequency: "daily",   priority: 1    },
+    { url: `${baseUrl}/blog`,               lastModified: now, changeFrequency: "weekly",  priority: 0.8  },
     { url: `${baseUrl}/servers`,            lastModified: now, changeFrequency: "hourly",  priority: 0.95 },
     { url: `${baseUrl}/gpus`,               lastModified: now, changeFrequency: "daily",   priority: 0.9  },
     { url: `${baseUrl}/best-value`,         lastModified: now, changeFrequency: "hourly",  priority: 0.9  },
@@ -62,5 +64,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...useCasePages, ...providerPages, ...gpuPages, ...comparePairs];
+  const blogPages: MetadataRoute.Sitemap = BLOG_POSTS.map((p) => ({
+    url: `${baseUrl}/blog/${p.slug}`,
+    lastModified: new Date(p.date),
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...useCasePages, ...blogPages, ...providerPages, ...gpuPages, ...comparePairs];
 }

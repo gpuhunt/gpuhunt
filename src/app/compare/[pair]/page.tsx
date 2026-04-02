@@ -85,8 +85,22 @@ export default async function ComparisonPage({ params }: PageProps) {
     }
   }
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "GPUHunt", item: "https://gpu-hunt.com" },
+      { "@type": "ListItem", position: 2, name: "Compare Providers", item: "https://gpu-hunt.com/providers" },
+      { "@type": "ListItem", position: 3, name: `${provA.name} vs ${provB.name}`, item: `https://gpu-hunt.com/compare/${pair}` },
+    ],
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+      />
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs mb-6" style={{ color: "var(--text-muted)" }}>
         <a href="/" className="hover:text-white transition-colors">GPUHunt</a>

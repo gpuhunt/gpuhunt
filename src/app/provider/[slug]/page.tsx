@@ -39,6 +39,16 @@ export default async function ProviderPage({ params }: PageProps) {
     url: provider.website,
     description: provider.description ?? `${provider.name} GPU and bare metal server pricing.`,
   };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "GPUHunt", item: "https://gpu-hunt.com" },
+      { "@type": "ListItem", position: 2, name: "Servers", item: "https://gpu-hunt.com/servers" },
+      { "@type": "ListItem", position: 3, name: provider.name, item: `https://gpu-hunt.com/provider/${provider.slug}` },
+    ],
+  };
   const cheapest = servers
     .filter((s) => s.price_monthly != null)
     .sort((a, b) => (a.price_monthly ?? 0) - (b.price_monthly ?? 0))[0];
@@ -53,6 +63,10 @@ export default async function ProviderPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-6" style={{ color: "var(--text-muted)" }}>

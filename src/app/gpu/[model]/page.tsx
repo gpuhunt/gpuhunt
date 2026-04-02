@@ -14,12 +14,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { model } = await params;
   const gpuModel = decodeURIComponent(model);
   const shortName = gpuModel.replace("NVIDIA ", "").replace("AMD Instinct ", "");
+  const servers = getServersByGpu(gpuModel);
+  const providerCount = new Set(servers.map((s) => s.provider_name)).size;
   return {
     title: `${gpuModel} Rental Pricing — Compare ${shortName} Servers`,
-    description: `Compare ${gpuModel} GPU server pricing across ${10}+ cloud providers. Find the cheapest ${shortName} instance available right now.`,
+    description: `Compare ${gpuModel} GPU server pricing across ${providerCount}+ cloud providers. Find the cheapest ${shortName} instance available right now.`,
     openGraph: {
       title: `${gpuModel} GPU Rental Prices`,
-      description: `Live pricing for ${gpuModel} GPU servers across all major cloud providers.`,
+      description: `Live pricing for ${gpuModel} GPU servers across all major cloud providers. Starting from $${servers.filter((s) => s.price_hourly != null).sort((a, b) => (a.price_hourly ?? 0) - (b.price_hourly ?? 0))[0]?.price_hourly?.toFixed(2) ?? "—"}/hr.`,
     },
   };
 }
@@ -57,19 +59,40 @@ export default async function GpuModelPage({ params }: PageProps) {
     ? Math.round((1 - cheapest.price_hourly / avgHourly) * 100)
     : null;
 
+  const sortedHourly = [...withHourly].sort((a, b) => (a.price_hourly ?? 0) - (b.price_hourly ?? 0));
+  const highestHourly = withHourly.reduce((max, s) => (s.price_hourly ?? 0) > (max?.price_hourly ?? 0) ? s : max, withHourly[0]);
+
   // JSON-LD structured data
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${gpuModel} GPU Server`,
     description: `Rent a ${gpuModel} GPU server from ${providerNames.slice(0, 3).join(", ")} and more. Starting from $${cheapest?.price_hourly?.toFixed(2) ?? "—"}/hr.`,
-    offers: withHourly.slice(0, 5).map((s) => ({
-      "@type": "Offer",
-      url: s.url,
-      price: s.price_hourly?.toFixed(4),
-      priceCurrency: s.currency,
-      seller: { "@type": "Organization", name: s.provider_name },
-    })),
+    offers: {
+      "@type": "AggregateOffer",
+      lowPrice: cheapest?.price_hourly?.toFixed(4),
+      highPrice: highestHourly?.price_hourly?.toFixed(4),
+      priceCurrency: "USD",
+      offerCount: withHourly.length,
+      offers: sortedHourly.slice(0, 5).map((s) => ({
+        "@type": "Offer",
+        url: s.url,
+        price: s.price_hourly?.toFixed(4),
+        priceCurrency: s.currency,
+        availability: "https://schema.org/InStock",
+        seller: { "@type": "Organization", name: s.provider_name },
+      })),
+    },
+  };
+
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "GPUHunt", item: "https://gpu-hunt.com" },
+      { "@type": "ListItem", position: 2, name: "GPU Servers", item: "https://gpu-hunt.com/servers?min_gpu_count=1" },
+      { "@type": "ListItem", position: 3, name: gpuModel, item: `https://gpu-hunt.com/gpu/${encodeURIComponent(gpuModel)}` },
+    ],
   };
 
   return (
@@ -77,6 +100,10 @@ export default async function GpuModelPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
 
       {/* Breadcrumb */}
