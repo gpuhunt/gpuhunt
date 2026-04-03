@@ -547,4 +547,767 @@ export const BLOG_POSTS: BlogPost[] = [
       },
     ],
   },
+
+  {
+    slug: "ran-out-of-gpu-memory",
+    title: "CUDA Out of Memory? How to Move Your AI Project to the Cloud in 10 Minutes",
+    description:
+      "Hit 'CUDA out of memory' on your local machine? This guide shows you exactly how to move your AI workload to a cloud GPU — from picking the right GPU to running your first job, in under 10 minutes.",
+    date: "2026-04-02",
+    readTime: 8,
+    tags: ["Getting Started", "VRAM", "Cloud GPU", "Local to Cloud"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "You're mid-experiment. Your model is loading. Then: 'RuntimeError: CUDA out of memory. Tried to allocate 2.00 GiB (GPU 0; 23.69 GiB total capacity; 20.45 GiB already allocated).' You've hit the wall that every AI developer hits eventually — your local GPU doesn't have enough VRAM. Here's how to move to a cloud GPU in 10 minutes, without losing your work or paying more than you need to.",
+      },
+      {
+        type: "h2",
+        content: "Why You're Running Out of VRAM (and What It Takes to Fix It)",
+      },
+      {
+        type: "p",
+        content:
+          "GPU memory usage in AI is dominated by model weights, activations, and optimizer state. A 7B parameter model in FP16 takes ~14 GB of VRAM just for weights — before you load a single batch. Add optimizer state (AdamW doubles that to ~28 GB for training) and activations, and an RTX 3090 or 4090 with 24 GB runs out fast. The fix isn't a bigger local GPU — it's renting exactly the GPU you need, only for the hours you use it.",
+      },
+      {
+        type: "table",
+        headers: ["What You're Trying to Do", "Minimum VRAM Needed", "Cheapest Cloud GPU That Fits"],
+        rows: [
+          ["Inference: 7B model (FP16)", "14 GB", "RTX 4090 (~$0.44/hr on RunPod)"],
+          ["Inference: 7B model (INT8)", "8 GB", "RTX 3090 or L4 (~$0.35/hr)"],
+          ["Fine-tune 7B with QLoRA", "16 GB", "RTX 4090 (~$0.44/hr)"],
+          ["Fine-tune 13B with QLoRA", "20 GB", "RTX 4090 (~$0.44/hr)"],
+          ["Fine-tune 70B with QLoRA", "48 GB", "A100 80GB (~$1.59/hr)"],
+          ["Inference: 70B model (INT4)", "40 GB", "2× RTX 4090 (~$0.90/hr)"],
+          ["Training: 7B full fine-tune", "80 GB", "A100 80GB (~$1.59/hr)"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Step 1: Figure Out How Much VRAM You Actually Need",
+      },
+      {
+        type: "p",
+        content:
+          "Before picking a cloud GPU, run this quick check locally. Add this snippet right before your OOM error to see what you're actually using:",
+      },
+      {
+        type: "ul",
+        items: [
+          "import torch; print(torch.cuda.memory_summary()) — shows allocated vs reserved VRAM",
+          "nvidia-smi — shows current GPU memory usage across all processes",
+          "torch.cuda.max_memory_allocated() — peak VRAM during your last run",
+          "For transformers: model.get_memory_footprint() — model weights only, before training overhead",
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "Add 20–30% headroom to whatever peak you measured — activations and optimizer state scale with batch size. That's your minimum cloud GPU VRAM target.",
+      },
+      {
+        type: "h2",
+        content: "Step 2: Pick the Cheapest Cloud GPU That Fits",
+      },
+      {
+        type: "p",
+        content:
+          "Don't default to renting an H100 or A100 because they're familiar names. For most workloads hitting local OOM errors, an RTX 4090 (24 GB, ~$0.44–0.74/hr) or A100 80GB (~$1.59–1.99/hr) are the right choices. The RTX 4090 is often 3–4× cheaper than an A100 and has the same 24 GB as your local card — but cloud providers have them without the thermal limits and power constraints of a desktop machine.",
+      },
+      {
+        type: "callout",
+        content:
+          "Pro tip: If you're on an RTX 3090 or 4090 locally (24 GB) and still hitting OOM, try INT8 quantization first with bitsandbytes. It cuts VRAM by ~50% and often lets you keep running locally. If that's not enough, jump to a cloud A100 80GB.",
+      },
+      {
+        type: "cta",
+        content: "Find the cheapest GPU with the VRAM you need",
+        href: "/servers?min_gpu_count=1",
+        label: "Compare Cloud GPU Prices →",
+      },
+      {
+        type: "h2",
+        content: "Step 3: Get Running in Under 10 Minutes",
+      },
+      {
+        type: "p",
+        content:
+          "The fastest path to a cloud GPU for most developers is RunPod or Vast.ai — both have instances ready in under 2 minutes. Here's the exact workflow:",
+      },
+      {
+        type: "ol",
+        items: [
+          "Sign up at RunPod.io or Vast.ai (takes 2 minutes, credit card required)",
+          "Choose a GPU template — PyTorch with CUDA pre-installed, matching your local environment",
+          "SSH or open Jupyter: your instance has the same Python/CUDA stack you're used to",
+          "Upload your code: git clone your repo, or use scp / rsync for local files",
+          "Install dependencies: pip install -r requirements.txt (same as local)",
+          "Run your training script or inference code — exactly as you would locally",
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "Most developers are running their first cloud GPU job within 10–15 minutes of signing up. The instance feels identical to SSH-ing into a powerful local machine — the only difference is the GPU has enough VRAM.",
+      },
+      {
+        type: "h2",
+        content: "Step 4: Transfer Your Model Weights and Data",
+      },
+      {
+        type: "p",
+        content:
+          "If your model is from HuggingFace, this is trivial — just call from_pretrained() with the model name and it downloads automatically. For local datasets or custom checkpoints:",
+      },
+      {
+        type: "ul",
+        items: [
+          "HuggingFace models: from_pretrained('meta-llama/Llama-3-8b-hf') — downloads automatically",
+          "Local datasets under 1GB: scp or rsync over SSH",
+          "Large datasets (10GB+): Upload to S3 or HuggingFace Hub first, pull from cloud instance",
+          "Custom checkpoints: Upload to cloud storage, or keep them in a persistent volume if you'll iterate multiple times",
+        ],
+      },
+      {
+        type: "h2",
+        content: "How Much Will It Cost?",
+      },
+      {
+        type: "p",
+        content:
+          "The arithmetic is usually surprising. A 4-hour fine-tuning run on a single A100 80GB costs $6.40–$8.00 on RunPod spot pricing. A full training run that would take 2 days on your local RTX 4090 might finish in 4 hours on an 8× A100 cluster for $50–70 total. Cloud GPU time is cheap when you're only paying for exactly the hours you use.",
+      },
+      {
+        type: "table",
+        headers: ["Workload", "Cloud GPU", "Estimated Time", "Estimated Cost"],
+        rows: [
+          ["Fine-tune LLaMA 3 8B (QLoRA, 1K examples)", "1× A100 80GB", "2–3 hours", "$3–$6"],
+          ["Fine-tune LLaMA 3 8B (full, 50K examples)", "1× A100 80GB", "8–12 hours", "$13–$24"],
+          ["Inference API: 7B model, low traffic", "1× RTX 4090", "Ongoing", "$0.44/hr"],
+          ["Stable Diffusion batch generation (1000 images)", "1× RTX 4090", "1–2 hours", "$0.50–$1.50"],
+          ["Fine-tune 70B (QLoRA)", "2× A100 80GB", "6–10 hours", "$19–$40"],
+        ],
+      },
+      {
+        type: "cta",
+        content: "Find today's cheapest GPU for your workload",
+        href: "/servers?min_gpu_count=1",
+        label: "See Live GPU Prices →",
+      },
+      {
+        type: "h2",
+        content: "Tips to Avoid Surprises",
+      },
+      {
+        type: "ul",
+        items: [
+          "Set a billing alert — both RunPod and Vast.ai let you cap spending",
+          "Stop your instance when not using it — you're billed per minute on most platforms",
+          "Use spot instances for training — 40–70% cheaper, just enable checkpointing every 30 minutes",
+          "Persistent storage is separate from compute — save your checkpoints to a volume, not the pod's disk",
+          "Test with a 5-minute run at low batch size before committing to a multi-hour job",
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: "google-colab-alternative-2025",
+    title: "Google Colab Alternatives in 2025: Faster GPUs, No Disconnects",
+    description:
+      "Tired of Google Colab timeouts, slow GPUs, and limited VRAM? These paid Colab alternatives give you persistent sessions, better GPUs, and predictable pricing. Compared side by side.",
+    date: "2026-04-01",
+    readTime: 7,
+    tags: ["Google Colab", "Getting Started", "Jupyter", "Cloud GPU"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "Google Colab is where most AI developers start — free, browser-based, no setup. But eventually it fails you: your session disconnects mid-training, the T4 GPU runs out of VRAM, Colab Pro costs $10–50/month and still gives you a shared GPU with no guarantee. If you've hit these walls, you're ready for a real cloud GPU. Here's exactly what to switch to.",
+      },
+      {
+        type: "h2",
+        content: "What's Wrong with Google Colab",
+      },
+      {
+        type: "ul",
+        items: [
+          "Session timeouts: Free tier disconnects after 12 hours (or sooner if idle). Pro+ gives 24 hours but no persistent storage between sessions.",
+          "No guaranteed GPU: You get a T4, P100, or A100 depending on availability — you can't choose.",
+          "Limited VRAM: T4 has 16 GB. Not enough for 13B+ models in full precision.",
+          "No persistent instances: Every session starts fresh. Libraries re-install, models re-download.",
+          "Slow disk I/O: Google Drive mounting is painfully slow for large datasets.",
+          "Cost unpredictability: Colab Pro+ ($50/month) burns compute units for background tasks.",
+        ],
+      },
+      {
+        type: "h2",
+        content: "The Alternatives: A Side-by-Side Comparison",
+      },
+      {
+        type: "table",
+        headers: ["Platform", "GPU Options", "Session Limits", "Pricing", "Best For"],
+        rows: [
+          ["Kaggle Notebooks", "T4, P100", "12 hrs/week GPU", "Free", "Competitions, small experiments"],
+          ["Paperspace Gradient", "A100, RTX 4000", "No timeout (paid)", "$8–$39/month or pay-per-hour", "Notebooks with persistence"],
+          ["Lambda Labs Cloud", "H100, A100, A10", "No timeout", "$2.49–4.00/hr (H100)", "Training runs needing reliability"],
+          ["RunPod", "RTX 4090, A100, H100", "No timeout", "$0.44–2.79/hr", "Flexible GPU rental with Jupyter"],
+          ["Vast.ai", "RTX 4090, A100, H100", "No timeout", "$0.35–2.50/hr", "Cheapest option, spot pricing"],
+          ["JarvisLabs", "A100, RTX 6000 Ada", "No timeout", "$0.89–2.39/hr", "Notebook-first experience"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Best Google Colab Alternative for Most Developers: RunPod",
+      },
+      {
+        type: "p",
+        content:
+          "RunPod's JupyterLab pods are the closest equivalent to Colab, with a browser-based notebook interface and no session limits. You pick your exact GPU (RTX 4090 from $0.44/hr, A100 from $1.59/hr), and the instance stays up until you stop it. Pre-built templates include PyTorch, TensorFlow, and Stable Diffusion environments — similar to Colab runtimes, but with better GPUs and persistent storage.",
+      },
+      {
+        type: "p",
+        content:
+          "Cost comparison: Colab Pro+ is $50/month with limited A100 access. A RunPod A100 at $1.59/hr used 10 hours/week costs $63.60/month — with guaranteed A100 access, 80 GB VRAM, no disconnects, and persistent storage. For active developers, RunPod is both cheaper and dramatically more capable.",
+      },
+      {
+        type: "h2",
+        content: "Best for Pure Notebooks: Paperspace Gradient",
+      },
+      {
+        type: "p",
+        content:
+          "Paperspace Gradient is the most Colab-like experience — it's literally Jupyter notebooks with persistent storage and a UI that feels similar. The free tier has 6 hours/month of GPU. Paid plans start at $8/month for basic GPU access. For teams that want the Colab workflow without the limitations, Gradient is the least disruptive switch.",
+      },
+      {
+        type: "h2",
+        content: "Best for Reliability: Lambda Labs",
+      },
+      {
+        type: "p",
+        content:
+          "If you're running multi-day training jobs that absolutely cannot be interrupted, Lambda Labs is the right choice. They offer H100 and A100 instances with 99.9% uptime SLA, SSH access, Jupyter pre-installed, and NVLink clusters for multi-GPU training. No spot instance surprises — you pay on-demand and your instance runs until you stop it.",
+      },
+      {
+        type: "h2",
+        content: "Best for Lowest Cost: Vast.ai",
+      },
+      {
+        type: "p",
+        content:
+          "Vast.ai's GPU marketplace has the lowest prices you'll find anywhere — RTX 4090 instances from $0.35/hr, A100 from $1.20/hr on spot. The trade-off is reliability varies by host, and spot instances can be interrupted. For experiments, fine-tuning with checkpointing, and batch jobs, Vast.ai typically cuts costs by 40–60% vs RunPod on-demand.",
+      },
+      {
+        type: "callout",
+        content:
+          "Switching from Colab? Your .ipynb notebooks run unchanged on any of these platforms. Just upload the file, make sure your requirements.txt installs the same packages, and you're running — usually in under 5 minutes.",
+      },
+      {
+        type: "h2",
+        content: "How to Migrate from Colab in 5 Steps",
+      },
+      {
+        type: "ol",
+        items: [
+          "Download your .ipynb file from Colab (File → Download → .ipynb)",
+          "Sign up for RunPod, Paperspace, or Lambda Labs — takes 2 minutes",
+          "Start a new instance with a PyTorch template (same environment as Colab runtime)",
+          "Upload your notebook and connect via the browser-based Jupyter UI",
+          "Replace any Google Drive file paths with the local instance path (/workspace/)",
+        ],
+      },
+      {
+        type: "cta",
+        content: "Compare all cloud GPU providers for Jupyter notebooks",
+        href: "/servers?min_gpu_count=1",
+        label: "Find Your Colab Alternative →",
+      },
+    ],
+  },
+
+  {
+    slug: "runpod-vs-vastai-2025",
+    title: "RunPod vs Vast.ai in 2025: Which GPU Marketplace Is Actually Cheaper?",
+    description:
+      "RunPod and Vast.ai are the two biggest GPU marketplaces. We compare pricing, reliability, GPU selection, and developer experience to help you pick the right one for your workload.",
+    date: "2026-03-28",
+    readTime: 8,
+    tags: ["Provider Comparison", "RunPod", "Vast.ai", "Cost Optimization"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "RunPod and Vast.ai both let you rent GPU compute from a marketplace of hosts — no reserved capacity, pay by the hour. Both have RTX 4090s, A100s, H100s, and consumer-grade GPUs at prices well below AWS or Azure. But the two platforms have meaningfully different approaches to pricing, reliability, and user experience. Here's the detailed breakdown.",
+      },
+      {
+        type: "h2",
+        content: "Pricing Comparison: Who's Actually Cheaper?",
+      },
+      {
+        type: "table",
+        headers: ["GPU", "RunPod On-Demand", "RunPod Spot", "Vast.ai (typical range)"],
+        rows: [
+          ["RTX 3090 (24 GB)", "$0.44/hr", "$0.20–0.35/hr", "$0.20–0.38/hr"],
+          ["RTX 4090 (24 GB)", "$0.74/hr", "$0.35–0.55/hr", "$0.35–0.65/hr"],
+          ["A100 PCIe 80GB", "$1.89/hr", "$0.90–1.49/hr", "$1.10–1.80/hr"],
+          ["A100 SXM4 80GB", "$2.09/hr", "$1.00–1.60/hr", "$1.30–2.00/hr"],
+          ["H100 SXM5 80GB", "$2.79/hr", "$1.20–2.10/hr", "$1.80–2.80/hr"],
+          ["8× A100 SXM4 cluster", "$16.72/hr", "$7.20–12.80/hr", "$9.00–14.00/hr"],
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "Vast.ai's prices are set by individual hosts and fluctuate with market demand — sometimes cheaper than RunPod spot, sometimes more expensive. For consumer GPUs (RTX 3090, 4090), Vast.ai is often 10–20% cheaper. For data center GPUs (A100, H100), prices are comparable, with Vast.ai having better deals during off-peak hours.",
+      },
+      {
+        type: "h2",
+        content: "Reliability: The Real Difference",
+      },
+      {
+        type: "p",
+        content:
+          "This is where the platforms diverge significantly. RunPod manages its on-demand inventory more tightly — hosts must meet uptime requirements, and RunPod mediates disputes. RunPod spot instances can be interrupted, but on-demand instances run until you stop them. Reliability is generally high for established RunPod hosts.",
+      },
+      {
+        type: "p",
+        content:
+          "Vast.ai is a true marketplace — anyone with a GPU can list it. Quality varies significantly by host. Before renting, you can see a host's reliability score (percentage of on-time availability), DLPerf score (GPU benchmark), and review count. Renting from hosts with 99%+ reliability and 100+ rentals is safe; renting from new hosts is a gamble.",
+      },
+      {
+        type: "callout",
+        content:
+          "For production inference or long training runs, filter Vast.ai by reliability > 99% and hosts with 50+ reviews. For development and short experiments, any host works fine — you can just restart if something goes wrong.",
+      },
+      {
+        type: "h2",
+        content: "GPU Selection",
+      },
+      {
+        type: "p",
+        content:
+          "Both platforms have excellent GPU variety. Vast.ai has a slight edge on consumer GPU availability — you'll find more RTX 3080s, 3090s, 4080s, and even older V100s and P100s for ultra-budget workloads. RunPod tends to have better availability for high-end data center GPUs (H100 clusters) and more consistent instance specs.",
+      },
+      {
+        type: "ul",
+        items: [
+          "RunPod: Better for H100 clusters, more consistent specs, better Serverless GPU product",
+          "Vast.ai: Better for ultra-cheap consumer GPUs, wider variety of older hardware",
+          "Both: Good A100 80GB availability, reasonable H100 single-GPU availability",
+          "Both: Support Docker templates, Jupyter notebooks, SSH access",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Developer Experience",
+      },
+      {
+        type: "p",
+        content:
+          "RunPod has invested heavily in its platform — the UI is polished, pod management is straightforward, and it has advanced features like serverless endpoints (pay only when requests come in), pod networking, team workspaces, and a template marketplace. For developers building production inference APIs, RunPod Serverless is a standout product.",
+      },
+      {
+        type: "p",
+        content:
+          "Vast.ai's interface is more spartan but functional. The search/filter UI for finding instances is actually excellent — you can filter by GPU type, VRAM, price, reliability, location, disk speed, and more simultaneously. For GPU shopping, Vast.ai's search is arguably better than RunPod's.",
+      },
+      {
+        type: "h2",
+        content: "Which Should You Use?",
+      },
+      {
+        type: "table",
+        headers: ["Use Case", "Best Choice", "Why"],
+        rows: [
+          ["Development & experiments", "Vast.ai", "Lowest cost, use spot instances freely"],
+          ["Fine-tuning with checkpointing", "Vast.ai or RunPod spot", "40–70% cheaper than on-demand"],
+          ["Production inference API", "RunPod Serverless", "Pay per request, no idle billing"],
+          ["Long training runs (days)", "RunPod on-demand", "More reliable, SLA-backed"],
+          ["Budget-limited projects", "Vast.ai", "Often 20–30% cheaper for same GPU"],
+          ["Jupyter notebook workflow", "RunPod", "Better pod management UI"],
+          ["Consumer GPU (RTX 4090, etc.)", "Vast.ai", "More variety, often cheaper"],
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "Most AI developers end up using both: Vast.ai for development and experimentation where cost matters most, RunPod for production serving and longer training runs where reliability matters. Creating accounts on both takes 5 minutes total and lets you pick the cheapest option for each job.",
+      },
+      {
+        type: "cta",
+        content: "See live RunPod and Vast.ai pricing side by side",
+        href: "/servers?min_gpu_count=1",
+        label: "Compare GPU Prices Now →",
+      },
+    ],
+  },
+
+  {
+    slug: "fine-tune-llama-under-50",
+    title: "How to Fine-Tune LLaMA 3 for Under $50 (Step-by-Step, 2025)",
+    description:
+      "A practical guide to fine-tuning LLaMA 3 (8B or 70B) on a cloud GPU for under $50. Covers QLoRA setup, the cheapest GPU to rent, dataset preparation, and what to expect.",
+    date: "2026-03-25",
+    readTime: 10,
+    tags: ["Fine-Tuning", "LLaMA 3", "QLoRA", "Cost Optimization", "Tutorial"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "Fine-tuning LLaMA 3 used to require expensive compute and ML infrastructure expertise. In 2025, a full QLoRA fine-tune of LLaMA 3 8B on a custom dataset costs $3–$15 in cloud GPU time. This guide walks through exactly how to do it — GPU selection, dataset prep, training config, and what to watch for — so you get a usable fine-tuned model without burning money.",
+      },
+      {
+        type: "h2",
+        content: "What You'll Build",
+      },
+      {
+        type: "p",
+        content:
+          "By the end of this guide, you'll have a fine-tuned LLaMA 3 model adapted to your specific task — customer support, code generation, domain Q&A, classification, or instruction-following in a custom style. Cost: $5–$30 depending on dataset size and GPU. Time: 2–6 hours total (mostly waiting).",
+      },
+      {
+        type: "h2",
+        content: "The Budget Breakdown",
+      },
+      {
+        type: "table",
+        headers: ["Task", "GPU", "Provider", "Est. Time", "Est. Cost"],
+        rows: [
+          ["LLaMA 3 8B QLoRA, 1K examples, 3 epochs", "RTX 4090 (24GB)", "Vast.ai spot", "1.5–2 hrs", "$0.70–$1.50"],
+          ["LLaMA 3 8B QLoRA, 10K examples, 3 epochs", "RTX 4090 (24GB)", "RunPod spot", "4–6 hrs", "$2–$4"],
+          ["LLaMA 3 8B QLoRA, 50K examples, 3 epochs", "A100 80GB", "RunPod spot", "8–12 hrs", "$12–$20"],
+          ["LLaMA 3 70B QLoRA, 10K examples, 3 epochs", "2× A100 80GB", "Lambda Labs", "10–16 hrs", "$35–$55"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Step 1: Prepare Your Dataset",
+      },
+      {
+        type: "p",
+        content:
+          "QLoRA fine-tuning works best with instruction-response pairs in a consistent format. The minimum viable dataset is 500–1,000 high-quality examples — more data matters less than data quality. Format your data as JSONL with 'instruction', 'input', and 'output' fields (Alpaca format), or 'messages' arrays in ChatML format for chat models.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Alpaca format: {\"instruction\": \"...\", \"input\": \"...\", \"output\": \"...\"} — works with Axolotl, LLaMA-Factory",
+          "ChatML format: {\"messages\": [{\"role\": \"user\", \"content\": \"...\"}, {\"role\": \"assistant\", \"content\": \"...\"}]}",
+          "Minimum 500 examples for style transfer or simple task adaptation",
+          "1,000–5,000 examples for domain-specific knowledge",
+          "10K+ examples for complex instruction following or significant capability addition",
+          "Filter for quality over quantity — one bad example can hurt more than ten good ones help",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Step 2: Pick the Right GPU and Cloud Provider",
+      },
+      {
+        type: "p",
+        content:
+          "For LLaMA 3 8B QLoRA, an RTX 4090 (24 GB VRAM) is the sweet spot. It's 3× cheaper than an A100 and has enough VRAM for 8B QLoRA with batch size 4–8. For LLaMA 3 70B, you need 2× A100 80GB (tensor parallel) or a single H100 80GB with aggressive INT4 quantization.",
+      },
+      {
+        type: "p",
+        content:
+          "Use spot instances from RunPod or Vast.ai — they're 40–70% cheaper and fine-tuning with Axolotl supports automatic checkpointing every N steps. If your spot instance is interrupted, you resume from the last checkpoint and waste at most 30 minutes of compute.",
+      },
+      {
+        type: "cta",
+        content: "Find the cheapest available RTX 4090 or A100 right now",
+        href: "/servers?min_gpu_count=1",
+        label: "Browse GPU Prices →",
+      },
+      {
+        type: "h2",
+        content: "Step 3: Set Up Your Training Environment",
+      },
+      {
+        type: "p",
+        content:
+          "Axolotl is the easiest framework for LLaMA 3 fine-tuning — it handles data formatting, QLoRA config, checkpointing, and logging with a simple YAML config. Start your RunPod or Vast.ai instance with the PyTorch 2.2 + CUDA 12.1 template, then:",
+      },
+      {
+        type: "ol",
+        items: [
+          "pip install axolotl[flash-attn,deepspeed] — installs everything including QLoRA dependencies",
+          "Upload your dataset JSONL file (or reference a HuggingFace dataset ID)",
+          "Create your axolotl config YAML (model name, dataset path, LoRA rank, learning rate, epochs)",
+          "Request HuggingFace access token for LLaMA 3 (meta-llama/Meta-Llama-3-8B-Instruct requires approval)",
+          "Run: accelerate launch -m axolotl.cli.train your_config.yml",
+          "Monitor GPU utilization with nvidia-smi — should be 90%+ during training",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Step 4: Key QLoRA Configuration Settings",
+      },
+      {
+        type: "ul",
+        items: [
+          "LoRA rank (r): 16–64. Higher rank = more capacity but more VRAM. Start with r=32.",
+          "LoRA alpha: Usually 2× the rank (e.g., alpha=64 with r=32). Controls scaling of LoRA updates.",
+          "Target modules: q_proj, v_proj, k_proj, o_proj, gate_proj, up_proj, down_proj — target all attention and MLP layers for best results.",
+          "Learning rate: 2e-4 for small datasets, 1e-4 for larger datasets. Use cosine schedule with warmup.",
+          "Batch size: As large as fits in VRAM. Gradient accumulation to simulate larger batches (e.g., batch_size=2, gradient_accumulation=8 = effective batch 16).",
+          "Epochs: 3–5 for most fine-tuning tasks. Watch validation loss — stop early if it plateaus.",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Step 5: Merge and Export Your Model",
+      },
+      {
+        type: "p",
+        content:
+          "After training, you have LoRA adapter weights — a small set of diff weights rather than the full model. You can use these directly with PEFT, or merge them into the base model for easier deployment. Merging produces a standard model checkpoint that works with Ollama, vLLM, or any Transformers-compatible inference stack.",
+      },
+      {
+        type: "h2",
+        content: "What to Watch Out For",
+      },
+      {
+        type: "ul",
+        items: [
+          "Overfitting: If train loss keeps dropping but val loss stops improving, stop early. Common with small datasets.",
+          "Catastrophic forgetting: If the model gets worse at general tasks, reduce training epochs or use a smaller LoRA rank.",
+          "OOM during training: Lower batch size first, then reduce LoRA rank, then switch to INT4 base model (load_in_4bit: true).",
+          "Slow training: Flash Attention 2 is ~2× faster than standard attention — make sure flash_attention: true is set.",
+          "Spot interruption: Axolotl saves checkpoints to output_dir automatically. Restart with resume_from_checkpoint: true.",
+        ],
+      },
+      {
+        type: "cta",
+        content: "Get started with your fine-tuning run",
+        href: "/servers?min_gpu_count=1",
+        label: "Find a GPU for Under $1/hr →",
+      },
+    ],
+  },
+
+  {
+    slug: "cheapest-h100-cloud-2025",
+    title: "Cheapest H100 Cloud Rental in 2025: Full Price Comparison",
+    description:
+      "Which cloud provider offers the cheapest H100 GPU rentals in 2025? A regularly updated comparison of H100 SXM5 and NVL prices across Lambda Labs, CoreWeave, RunPod, Hyperstack, and others.",
+    date: "2026-03-20",
+    readTime: 6,
+    tags: ["H100", "Price Comparison", "Cloud GPU", "LLM Training"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "The NVIDIA H100 is the gold standard for LLM training and high-throughput inference. But H100 pricing varies dramatically across providers — from $2.29/hr to $5.00/hr for comparable specs. Picking the wrong provider for a week-long training run can cost you $500–$1,500 extra. Here's the current price landscape, updated regularly.",
+      },
+      {
+        type: "h2",
+        content: "H100 Pricing Across Providers (2025)",
+      },
+      {
+        type: "table",
+        headers: ["Provider", "H100 Variant", "Price/hr (1 GPU)", "Price/hr (8 GPU)", "Notes"],
+        rows: [
+          ["Hyperstack", "H100 NVL 94GB", "$2.29/hr", "$18.32/hr", "EU-based, strong NVLink"],
+          ["Lambda Labs", "H100 SXM5 80GB", "$2.49/hr", "$19.92/hr", "Best reliability, 99.9% SLA"],
+          ["CoreWeave", "H100 SXM5 80GB", "$2.79/hr", "$22.32/hr", "Enterprise focus, InfiniBand clusters"],
+          ["RunPod On-Demand", "H100 SXM5 80GB", "$2.79/hr", "$22.32/hr", "Good developer experience"],
+          ["RunPod Spot", "H100 SXM5 80GB", "$1.20–2.10/hr", "$9.60–16.80/hr", "Interruptible, 40–60% off"],
+          ["Vast.ai", "H100 SXM5 80GB", "$1.80–2.80/hr", "$14.40–22.40/hr", "Marketplace, varies by host"],
+          ["FluidStack", "H100 NVL 94GB", "$2.39/hr", "$19.12/hr", "European provider"],
+          ["DataCrunch", "H100 SXM5 80GB", "$2.49/hr", "$19.92/hr", "European, ISO 27001 certified"],
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "H100 NVL vs H100 SXM5: The NVL variant has 94 GB of HBM3e (vs 80 GB for SXM5) and supports NVLink 4.0 with 900 GB/s all-reduce bandwidth. For multi-GPU tensor-parallel training, the NVL is superior. For single-GPU workloads, the 80GB SXM5 is equivalent per FLOP.",
+      },
+      {
+        type: "h2",
+        content: "Total Cost for Common H100 Workloads",
+      },
+      {
+        type: "table",
+        headers: ["Workload", "GPU Config", "Runtime", "Cost at $2.49/hr", "Cost at $1.50/hr (spot)"],
+        rows: [
+          ["Fine-tune LLaMA 3 70B (QLoRA)", "1× H100", "6–8 hrs", "$15–$20", "$9–$12"],
+          ["Pre-train 7B model to 100B tokens", "8× H100", "~4 days", "$1,900", "$1,150"],
+          ["Fine-tune LLaMA 3 70B (full)", "8× H100", "2–3 days", "$960–$1,440", "$575–$860"],
+          ["Production inference API (24/7)", "1× H100", "1 month", "$1,793/month", "Not recommended (spot)"],
+          ["Benchmark / experiment (2hrs)", "1× H100", "2 hrs", "$5.00", "$3.00"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "When to Use Spot vs On-Demand H100",
+      },
+      {
+        type: "p",
+        content:
+          "H100 spot instances on RunPod and Vast.ai offer 40–60% discounts over on-demand, at the cost of potential interruption. The rule of thumb: use spot for any workload with automatic checkpointing (Axolotl, HuggingFace Trainer, DeepSpeed all support this). Use on-demand for production inference APIs, time-sensitive experiments, and any job where interruption would mean re-running from scratch.",
+      },
+      {
+        type: "h2",
+        content: "What About Reserved / Committed H100 Pricing?",
+      },
+      {
+        type: "p",
+        content:
+          "If you're running H100s continuously or near-continuously, committed contracts cut costs by 30–50%. Lambda Labs offers 1-month reserved H100 at roughly $1,800/month (vs $1,793/month on-demand — essentially the same). CoreWeave and Hyperstack offer 3-month and 12-month contracts with meaningful discounts. At 6+ months of continuous use, reserved pricing on CoreWeave or Hyperstack drops to ~$1.50–$1.80/hr equivalent.",
+      },
+      {
+        type: "h2",
+        content: "Which Provider Should You Use?",
+      },
+      {
+        type: "ul",
+        items: [
+          "Best price (spot): RunPod or Vast.ai — H100 from $1.20/hr with checkpointing",
+          "Best price (on-demand): Hyperstack at $2.29/hr or Lambda Labs at $2.49/hr",
+          "Best reliability: Lambda Labs — 99.9% SLA, purpose-built AI infrastructure",
+          "Best for EU data residency: Hyperstack (Iceland/Netherlands) or DataCrunch (Finland)",
+          "Best for large clusters (32–256 GPUs): CoreWeave — InfiniBand fabric, enterprise SLAs",
+          "Best for one-off experiments: RunPod — easiest signup, fastest instance provisioning",
+        ],
+      },
+      {
+        type: "cta",
+        content: "See live H100 prices across all providers, updated daily",
+        href: "/gpu/NVIDIA%20H100",
+        label: "Compare H100 Prices →",
+      },
+      {
+        type: "h2",
+        content: "Will H100 Prices Drop?",
+      },
+      {
+        type: "p",
+        content:
+          "H100 prices have declined roughly 15–25% over the past 12 months as supply from NVIDIA increased and providers expanded capacity. The H200 and Blackwell B200 are entering the market in 2025–2026, which will put further downward pressure on H100 pricing. If your training run is flexible, waiting 3–6 months for lower H100 prices or better B200 availability could save 20–30%.",
+      },
+    ],
+  },
+
+  {
+    slug: "local-gpu-not-enough",
+    title: "Your Local GPU Is Holding You Back: Signs It's Time to Move to Cloud",
+    description:
+      "Running AI workloads on a local machine has real limits — VRAM, thermal throttling, single-GPU scale, and training time. Here's how to know when cloud GPU is the right move, and how to make the switch.",
+    date: "2026-03-15",
+    readTime: 7,
+    tags: ["Getting Started", "Local GPU", "Cloud GPU", "MacBook", "RTX 4090"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "You built your first ML model locally. Then you upgraded to an RTX 4090. Then you started quantizing everything. Now you're staring at a 'CUDA out of memory' error or a training ETA of 47 hours. Local GPU compute has a ceiling — and most developers hit it faster than they expect. Here's how to recognize when you've hit it and what to do next.",
+      },
+      {
+        type: "h2",
+        content: "Signs You've Outgrown Local Compute",
+      },
+      {
+        type: "ul",
+        items: [
+          "Your training runs take more than 4 hours and you can't use your machine during that time",
+          "You're constantly juggling quantization levels (FP16 → INT8 → INT4) just to fit models in VRAM",
+          "You want to run multi-GPU tensor parallel training and only have one GPU",
+          "Your MacBook or workstation fan turns into a jet engine during inference",
+          "You need to serve a model 24/7 but don't want to leave your development machine running",
+          "You want to experiment with 70B+ parameter models and they simply don't fit anywhere locally",
+          "You're a team of 2+ people who need GPU access simultaneously",
+        ],
+      },
+      {
+        type: "h2",
+        content: "The Real Cost Comparison: Local vs Cloud",
+      },
+      {
+        type: "p",
+        content:
+          "People assume local GPU is 'free' — but it isn't. An RTX 4090 costs $1,600–$2,000 upfront and uses 450W during training. At 10 cents/kWh, that's $0.045/hr in electricity — nearly free. But the upfront cost amortized over 3 years is $0.06–0.08/hr. Combined with the machine cost, realistic total ownership is $0.15–0.30/hr for an RTX 4090.",
+      },
+      {
+        type: "table",
+        headers: ["Option", "Upfront Cost", "Effective Cost/hr", "Max VRAM", "Multi-GPU?"],
+        rows: [
+          ["Local RTX 4090", "$1,800", "~$0.20/hr (amortized)", "24 GB", "Limited/expensive"],
+          ["Local 2× RTX 4090", "$3,600", "~$0.40/hr (amortized)", "48 GB (no NVLink)", "2 GPUs"],
+          ["Cloud RTX 4090 (spot)", "$0", "$0.35–0.55/hr", "24 GB", "Scalable"],
+          ["Cloud A100 80GB (spot)", "$0", "$0.90–1.49/hr", "80 GB", "Scalable"],
+          ["Cloud 8× H100 (spot)", "$0", "$9.60–16.80/hr", "640 GB", "Yes, NVLink"],
+          ["Mac Studio M2 Ultra", "$4,000", "~$0.50/hr (amortized)", "192 GB unified", "Metal only"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "What About Apple Silicon (MacBook Pro, Mac Studio)?",
+      },
+      {
+        type: "p",
+        content:
+          "Apple Silicon is surprisingly good for certain AI workloads. The M3 Max and M2 Ultra have unified memory up to 192 GB — meaning you can run 70B parameter models in INT4 that wouldn't fit on any single datacenter GPU. MLX (Apple's ML framework) runs inference efficiently on Apple Silicon, sometimes within 50–70% of A100 performance for 7B models.",
+      },
+      {
+        type: "p",
+        content:
+          "But Apple Silicon hits real walls: no CUDA support (many training libraries are CUDA-only), limited fine-tuning support (QLoRA via MLX is early-stage), and poor performance for CUDA-based serving stacks (vLLM, TGI). For training, Apple Silicon is typically 5–10× slower than an equivalent datacenter GPU. It's great for inference and development, not for production training.",
+      },
+      {
+        type: "h2",
+        content: "The Hybrid Approach: Local + Cloud",
+      },
+      {
+        type: "p",
+        content:
+          "The best setup for most developers isn't replacing local compute with cloud — it's using them together. Use your local machine or MacBook for development, testing, and small-scale experiments. Use cloud GPUs for training runs, large model inference, and multi-GPU experiments. This keeps iteration loops fast locally while giving you access to any scale of compute on demand.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Develop on local machine: debug code, test with small batches, iterate on architecture",
+          "Run experiments on cloud spot instances: 40–70% cheaper than on-demand, use checkpointing",
+          "Keep one cloud GPU running for team inference: shared RTX 4090 at $0.44/hr = $320/month for always-on serving",
+          "Scale to H100 clusters only for production training runs — no standing infrastructure needed",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Making the Switch: Practical First Steps",
+      },
+      {
+        type: "ol",
+        items: [
+          "Sign up for RunPod or Vast.ai — takes 5 minutes, no commitment",
+          "Run your exact local workflow on a cloud RTX 4090 for one experiment — compare time and cost",
+          "If it saves time or money, set up a standard launch script so cloud instances start identically every time",
+          "Add automatic checkpointing to your training code (HuggingFace Trainer does this by default)",
+          "Use the cloud GPU only for multi-hour jobs — keep local machine for quick testing",
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "Most developers who try cloud GPU for the first time are surprised by how cheap it is for short jobs. A 2-hour experiment on an A100 costs ~$4. That's less than a coffee, and you get 80 GB of VRAM and no thermal throttling.",
+      },
+      {
+        type: "cta",
+        content: "Find the right cloud GPU for your workload",
+        href: "/servers?min_gpu_count=1",
+        label: "Browse GPU Prices →",
+      },
+      {
+        type: "h2",
+        content: "When NOT to Move to Cloud",
+      },
+      {
+        type: "p",
+        content:
+          "Cloud GPU isn't always the answer. If you're running inference continuously (24/7) on a small model (7B or under), a local machine or Mac Studio may be cheaper long-term. If your data is too sensitive to put on third-party infrastructure, local compute is the right choice. And if your workloads fit comfortably in local VRAM without pain, there's no reason to add cloud complexity.",
+      },
+    ],
+  },
 ];
