@@ -29,9 +29,33 @@ const nextConfig: NextConfig = {
     "/gpus": ["./src/data/gpuhunt.db"],
     "/providers": ["./src/data/gpuhunt.db"],
   },
-  // Exclude the macOS native binary from being bundled — Vercel rebuilds it for Linux
+  // Exclude files that must NOT be bundled into Vercel serverless functions:
+  // - macOS native binary (Vercel rebuilds better-sqlite3 for Linux at deploy time)
+  // - SQLite WAL files (.db-shm / .db-wal): stale WAL files cause SQLITE_CANTOPEN
+  //   on Vercel's read-only Lambda filesystem. The scrape workflow checkpoints and
+  //   removes them before deploy, but this exclude is belt-and-suspenders.
   outputFileTracingExcludes: {
-    "/servers": ["./node_modules/better-sqlite3/build/Release/better_sqlite3.node"],
+    "/servers": [
+      "./node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "./src/data/gpuhunt.db-shm",
+      "./src/data/gpuhunt.db-wal",
+    ],
+    "/api/servers": [
+      "./src/data/gpuhunt.db-shm",
+      "./src/data/gpuhunt.db-wal",
+    ],
+    "/api/alerts": [
+      "./src/data/gpuhunt.db-shm",
+      "./src/data/gpuhunt.db-wal",
+    ],
+    "/api/deals": [
+      "./src/data/gpuhunt.db-shm",
+      "./src/data/gpuhunt.db-wal",
+    ],
+    "/api/geo": [
+      "./src/data/gpuhunt.db-shm",
+      "./src/data/gpuhunt.db-wal",
+    ],
   },
 };
 

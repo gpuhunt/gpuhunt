@@ -31,10 +31,17 @@ jobs:
           node -e "
             const Database = require('better-sqlite3');
             const db = new Database('src/data/gpuhunt.db');
-            db.pragma('wal_checkpoint(FULL)');
+            // TRUNCATE checkpoints all frames AND shrinks the WAL file to 0 bytes
+            const result = db.pragma('wal_checkpoint(TRUNCATE)');
+            console.log('WAL checkpoint result:', result);
+            // Switch to DELETE journal mode so the .db-wal and .db-shm files
+            // are removed — Vercel bundles any file it finds next to the DB,
+            // and a stale WAL causes SQLITE_CANTOPEN on the read-only Lambda FS.
+            db.pragma('journal_mode = DELETE');
             db.close();
-            console.log('WAL checkpoint complete');
+            console.log('WAL checkpoint complete; WAL files removed');
           "
+          rm -f src/data/gpuhunt.db-shm src/data/gpuhunt.db-wal
 
       - name: Commit updated database
         run: |
