@@ -64,7 +64,9 @@ export function getProviderBySlug(slug: string): Provider | undefined {
 
 export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
   const db = getDb();
-  const conditions: string[] = [];
+  // Always require at least 1 GPU — this is a GPU comparison site and bare-metal
+  // servers without GPUs (e.g. 1,960 Hetzner non-GPU rows) pollute the results.
+  const conditions: string[] = ["s.gpu_count >= 1"];
   const params: (string | number)[] = [];
 
   if (filters.gpu_model) {
@@ -134,7 +136,7 @@ export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
 
 export function getServerCount(filters: ServerFilters = {}): number {
   const db = getDb();
-  const conditions: string[] = [];
+  const conditions: string[] = ["s.gpu_count >= 1"];
   const params: (string | number)[] = [];
 
   if (filters.gpu_model) {
