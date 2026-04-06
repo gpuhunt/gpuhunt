@@ -1,8 +1,27 @@
 import Database from "better-sqlite3";
 import path from "path";
+import { existsSync } from "fs";
 import { Server, ServerWithProvider, ServerFilters, Provider } from "./types";
 
-const DB_PATH = path.join(process.cwd(), "src", "data", "gpuhunt.db");
+function resolveDbPath(): string {
+  const candidates = [
+    // Standard: Next.js sets cwd to project root locally and on Vercel (/var/task)
+    path.join(process.cwd(), "src", "data", "gpuhunt.db"),
+    // Vercel Lambda explicit fallback
+    "/var/task/src/data/gpuhunt.db",
+    // Relative to compiled chunk — .next/server/chunks/ → up 3 levels → project root
+    path.join(__dirname, "..", "..", "..", "src", "data", "gpuhunt.db"),
+    // One more level up for some Next.js App Router layouts
+    path.join(__dirname, "..", "..", "..", "..", "src", "data", "gpuhunt.db"),
+  ];
+  const found = candidates.find((c) => existsSync(c));
+  if (!found) {
+    console.error("[db] SQLITE_CANTOPEN: gpuhunt.db not found. Tried:", candidates, "cwd:", process.cwd(), "__dirname:", __dirname);
+  }
+  return found ?? candidates[0];
+}
+
+const DB_PATH = resolveDbPath();
 
 let _db: Database.Database | null = null;
 
