@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     search: searchParams.get("search") || undefined,
     limit: Math.min(parseInt(searchParams.get("limit") || "100"), 500),
     offset: parseInt(searchParams.get("offset") || "0"),
+    deduplicate: searchParams.get("deduplicate") === "true",
   };
 
   const servers = getServers(filters);
