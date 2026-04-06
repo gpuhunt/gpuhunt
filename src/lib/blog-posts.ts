@@ -16,6 +16,7 @@ export interface BlogPost {
   readTime: number;
   tags: string[];
   sections: BlogSection[];
+  faqs?: { q: string; a: string }[];
 }
 
 export const BLOG_POSTS: BlogPost[] = [
@@ -135,6 +136,20 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         content:
           "For production LLM training at scale, the H100 wins on cost-per-FLOP even at its higher hourly rate. For development, fine-tuning smaller models, or inference workloads where you don't need peak throughput, the A100 remains excellent value. The best approach: benchmark your specific workload on a single H100 vs A100 for a short run, calculate the cost per epoch or per token, then commit to the cheaper option at scale.",
+      },
+    ],
+    faqs: [
+      {
+        q: "Is the H100 worth the extra cost over an A100?",
+        a: "For models over 13B parameters, yes — the H100 trains 2.5–3× faster, so your total bill is often lower despite the higher hourly rate. For smaller models under 7B, the A100 is usually more economical. Use GPUHunt's price comparison to check current rates before deciding.",
+      },
+      {
+        q: "How much faster is H100 vs A100 for LLM training?",
+        a: "The H100 SXM5 is approximately 2.5–3× faster than the A100 SXM4 for large language model training, thanks to the Transformer Engine, FP8 compute support, and 3.35 TB/s memory bandwidth (vs A100's 2.0 TB/s).",
+      },
+      {
+        q: "What's the cheapest H100 cloud rental right now?",
+        a: "H100 SXM5 rentals currently start at around $2.49–$2.99/hr on providers like Hyperstack and Lambda Labs. GPUHunt tracks live prices across 20+ providers so you can always find the current cheapest option.",
       },
     ],
   },
@@ -825,6 +840,20 @@ export const BLOG_POSTS: BlogPost[] = [
         label: "Find Your Colab Alternative →",
       },
     ],
+    faqs: [
+      {
+        q: "What is the best free alternative to Google Colab?",
+        a: "Kaggle Notebooks offers free GPU access (T4/P100) with fewer disconnects than Colab. Lightning.ai, Paperspace Gradient, and Hugging Face Spaces offer free tiers. For serious work requiring more VRAM or longer runtimes, paid cloud GPUs from RunPod or Vast.ai start at under $0.20/hr.",
+      },
+      {
+        q: "Why does Google Colab disconnect?",
+        a: "Colab disconnects idle notebooks after 90 minutes and limits session length to 12 hours. It's designed for casual use, not production training runs. Paid Colab Pro+ extends limits but still caps at 24-hour sessions.",
+      },
+      {
+        q: "How much does a cloud GPU cost compared to Colab Pro?",
+        a: "Colab Pro costs $10/month and Colab Pro+ $50/month, but both share GPU resources and have usage caps. A dedicated T4 on Vast.ai runs $0.15–0.30/hr, an A100 $1.50–2.00/hr. For serious daily use, a dedicated instance often gives better value-per-compute than Colab Pro+.",
+      },
+    ],
   },
 
   {
@@ -940,6 +969,20 @@ export const BLOG_POSTS: BlogPost[] = [
         content: "See live RunPod and Vast.ai pricing side by side",
         href: "/servers?min_gpu_count=1",
         label: "Compare GPU Prices Now →",
+      },
+    ],
+    faqs: [
+      {
+        q: "Is RunPod or Vast.ai cheaper for renting GPUs?",
+        a: "Vast.ai is generally cheaper for consumer GPUs (RTX 3090, 4090) since it's a peer-to-peer marketplace with more price competition. RunPod is often more competitive on datacenter GPUs (A100, H100) and offers better reliability guarantees. Always compare both on GPUHunt before renting.",
+      },
+      {
+        q: "Is Vast.ai safe and reliable?",
+        a: "Vast.ai is legitimate and widely used, but because hosts are individuals, reliability varies. Expect occasional instance terminations. It's best for interruptible workloads, experiments, and cheap inference. For production training runs, RunPod's managed instances offer better uptime.",
+      },
+      {
+        q: "Does RunPod offer spot instances?",
+        a: "Yes — RunPod's Community Cloud offers spot-like pricing that can be 40–70% cheaper than on-demand. These instances can be reclaimed by hosts, so use them for checkpoint-friendly workloads.",
       },
     ],
   },
@@ -1189,6 +1232,20 @@ export const BLOG_POSTS: BlogPost[] = [
           "H100 prices have declined roughly 15–25% over the past 12 months as supply from NVIDIA increased and providers expanded capacity. The H200 and Blackwell B200 are entering the market in 2025–2026, which will put further downward pressure on H100 pricing. If your training run is flexible, waiting 3–6 months for lower H100 prices or better B200 availability could save 20–30%.",
       },
     ],
+    faqs: [
+      {
+        q: "How much does renting an H100 GPU cost per month?",
+        a: "An H100 SXM5 running 24/7 costs approximately $1,800–$2,900/month depending on the provider. Spot/preemptible instances from providers like RunPod and Vast.ai can be 30–50% cheaper if your workload tolerates interruptions.",
+      },
+      {
+        q: "Which cloud provider has the cheapest H100 in 2025?",
+        a: "Hyperstack and Lambda Labs consistently offer H100 SXM5 at the lowest reserved rates ($2.49–$2.99/hr as of 2025). For spot pricing, CoreWeave and RunPod are competitive. GPUHunt's live comparison table shows real-time prices.",
+      },
+      {
+        q: "Is H100 PCIe cheaper than H100 SXM5?",
+        a: "Yes — H100 PCIe variants are typically 15–25% cheaper than SXM5. They have lower memory bandwidth (2.0 TB/s vs 3.35 TB/s) and are better suited for inference than training. If you're only running inference on large models, PCIe is often sufficient.",
+      },
+    ],
   },
 
   {
@@ -1307,6 +1364,467 @@ export const BLOG_POSTS: BlogPost[] = [
         type: "p",
         content:
           "Cloud GPU isn't always the answer. If you're running inference continuously (24/7) on a small model (7B or under), a local machine or Mac Studio may be cheaper long-term. If your data is too sensitive to put on third-party infrastructure, local compute is the right choice. And if your workloads fit comfortably in local VRAM without pain, there's no reason to add cloud complexity.",
+      },
+    ],
+  },
+
+  {
+    slug: "gpu-cloud-stable-diffusion-2025",
+    title: "Best GPU Cloud for Stable Diffusion & Flux in 2025",
+    description:
+      "Running Stable Diffusion SDXL or Flux locally but running out of VRAM? We compare the cheapest cloud GPUs for image generation — RTX 4090, A40, L40S pricing across RunPod, Vast.ai, and more.",
+    date: "2026-03-25",
+    readTime: 7,
+    tags: ["Image Generation", "Stable Diffusion", "Flux", "Cost Optimization"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "Stable Diffusion SDXL and Flux.1 have raised the bar for open-source image generation — but they've also raised the VRAM bar. SDXL at full quality needs 8–16 GB, and Flux.1 Dev pushes you to 24 GB or more. If your local GPU is struggling, cloud GPUs let you generate at full resolution without compromising quality or waiting for quantized workarounds.",
+      },
+      {
+        type: "h2",
+        content: "What GPU Do You Need for Stable Diffusion?",
+      },
+      {
+        type: "p",
+        content:
+          "VRAM is the primary constraint for image generation. SDXL (1024×1024 native resolution) needs at least 8 GB VRAM for basic generation and 12–16 GB for full quality without memory optimization tricks. Flux.1 Dev and Schnell are significantly more demanding — expect 20–24 GB for comfortable full-resolution generation at batch size 1.",
+      },
+      {
+        type: "callout",
+        content:
+          "The sweet spot for cloud image generation: an RTX 4090 (24 GB) for SDXL and Flux.1 Schnell, or an A40/L40S (48 GB) if you want to batch-generate at full resolution with Flux.1 Dev and ControlNet simultaneously.",
+      },
+      {
+        type: "h2",
+        content: "GPU Specs for Stable Diffusion: RTX 4090 vs A40 vs L40S",
+      },
+      {
+        type: "table",
+        headers: ["GPU", "VRAM", "Memory Bandwidth", "SDXL Speed (img/min)", "Flux.1 Dev Speed", "Cloud Price"],
+        rows: [
+          ["RTX 4090", "24 GB GDDR6X", "1.0 TB/s", "~12–15 imgs/min", "~2–4 imgs/min", "$0.35–0.74/hr"],
+          ["A40", "48 GB GDDR6", "0.7 TB/s", "~8–10 imgs/min", "~1.5–3 imgs/min", "$0.79–1.49/hr"],
+          ["L40S", "48 GB GDDR6", "0.9 TB/s", "~10–13 imgs/min", "~2–4 imgs/min", "$1.49–2.49/hr"],
+          ["A100 80GB", "80 GB HBM2e", "2.0 TB/s", "~10–14 imgs/min", "~3–5 imgs/min", "$1.49–2.20/hr"],
+          ["RTX 3090", "24 GB GDDR6X", "0.9 TB/s", "~8–10 imgs/min", "~1.5–2.5 imgs/min", "$0.20–0.44/hr"],
+        ],
+      },
+      {
+        type: "p",
+        content:
+          "The RTX 4090 is the standout for image generation: its GDDR6X bandwidth and Ada Lovelace architecture make it faster than much pricier data center GPUs for single-image generation. The A40 and L40S shine for batch workloads where the extra VRAM lets you run larger batches simultaneously.",
+      },
+      {
+        type: "h2",
+        content: "Provider Pricing Comparison for Image Generation GPUs",
+      },
+      {
+        type: "table",
+        headers: ["Provider", "RTX 4090 Price", "A40 Price", "L40S Price", "Notes"],
+        rows: [
+          ["Vast.ai", "$0.35–0.65/hr", "$0.60–1.10/hr", "Rare", "Cheapest, peer-to-peer, variable reliability"],
+          ["RunPod", "$0.74/hr on-demand", "$0.79–0.99/hr", "$1.79/hr", "Reliable, good SD templates"],
+          ["RunPod (spot)", "$0.35–0.55/hr", "$0.45–0.79/hr", "$0.89–1.49/hr", "40–70% cheaper, interruptible"],
+          ["Lambda Labs", "Not available", "Not available", "Not available", "Data center GPUs only"],
+          ["Paperspace", "$0.45/hr", "$0.76/hr", "Not available", "Gradient notebooks, easy SD setup"],
+          ["JarvisLabs", "Not available", "$0.89/hr", "$1.49/hr", "Pre-installed SD/ComfyUI templates"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Images Per Dollar: RTX 4090 Wins for Most Use Cases",
+      },
+      {
+        type: "p",
+        content:
+          "For most Stable Diffusion users, the RTX 4090 at $0.35–0.50/hr on Vast.ai or RunPod spot delivers the best images-per-dollar. At 12 images/minute (20 steps, SDXL), you generate ~720 images/hour. At $0.50/hr, that's roughly $0.0007 per image — compared to Midjourney's ~$0.02 per image on the Pro plan.",
+      },
+      {
+        type: "h2",
+        content: "When to Use an A40 or L40S Instead",
+      },
+      {
+        type: "ul",
+        items: [
+          "Flux.1 Dev with ControlNet or IP-Adapter simultaneously (needs 30–40 GB VRAM)",
+          "Batch generation pipelines generating thousands of images at once",
+          "Running multiple SD models loaded simultaneously (A40's 48 GB fits 2–3 full SDXL models)",
+          "SDXL + SDXL-Refiner pipeline (requires 16–20 GB for both models in memory)",
+          "High-resolution generation at 2048×2048 or upscaling with ESRGAN loaded simultaneously",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Cloud vs Local: When Does It Make Sense?",
+      },
+      {
+        type: "p",
+        content:
+          "If you already own an RTX 3090 or 4090, running Stable Diffusion locally is usually cheaper for casual use (a few hundred images per week). The math flips for power users: generating 5,000+ images/week means your GPU is running nearly continuously, and a cloud RTX 4090 at $0.40/hr for 8 active hours/day costs $97/month — cheaper than the electricity plus amortized GPU cost of a high-end local workstation.",
+      },
+      {
+        type: "table",
+        headers: ["Usage Pattern", "Best Approach", "Estimated Monthly Cost"],
+        rows: [
+          ["< 500 images/month, casual", "Local RTX 3090/4090", "~$5–10 (electricity)"],
+          ["500–5000 images/month, active hobbyist", "Local or cloud RTX 4090 spot", "$20–80/month (cloud)"],
+          ["5000+ images/month, power user", "Cloud RTX 4090 (dedicated)", "$80–200/month"],
+          ["Commercial batch generation (100K+/month)", "Cloud A40 or L40S cluster", "$300–1,500/month"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Getting Started: Recommended Setups",
+      },
+      {
+        type: "ul",
+        items: [
+          "AUTOMATIC1111 / ComfyUI on RunPod: Use the pre-built 'Stable Diffusion' template — everything pre-installed, Jupyter + SSH access",
+          "Vast.ai for cheapest RTX 4090: Filter by RTX 4090, reliability > 99%, then install ComfyUI via setup script",
+          "JarvisLabs: Best for pure notebook users — pre-installed ComfyUI and A1111 with one-click start",
+          "For batch pipelines: Use RunPod Serverless with a custom Docker image for pay-per-generation billing",
+        ],
+      },
+      {
+        type: "cta",
+        content: "Find the cheapest RTX 4090 cloud GPU for Stable Diffusion right now",
+        href: "/servers?gpu_model=NVIDIA+RTX+4090",
+        label: "Compare RTX 4090 Prices →",
+      },
+    ],
+    faqs: [
+      {
+        q: "What GPU do I need for Stable Diffusion SDXL?",
+        a: "SDXL needs at least 8 GB VRAM for basic use and 16–24 GB for full quality without memory optimization. The RTX 4090 (24 GB) is the sweet spot for local use; in the cloud, an A40 (48 GB) or L40S (48 GB) lets you batch-generate at full resolution. You can find RTX 4090 cloud rentals for as low as $0.35–0.50/hr on GPUHunt.",
+      },
+      {
+        q: "How fast is Stable Diffusion SDXL on a cloud GPU?",
+        a: "On an RTX 4090, SDXL generates a 1024×1024 image in about 3–5 seconds (20 steps). On an A100 80GB, it's slightly faster at 2–4 seconds due to tensor core optimizations. Flux.1 Dev takes longer — roughly 15–30 seconds per image on a 4090.",
+      },
+      {
+        q: "Is it cheaper to run Stable Diffusion locally or in the cloud?",
+        a: "For casual use (a few images/day), local is cheaper if you already own an RTX 3090 or 4090. For batch generation (hundreds of images), cloud is often more economical — you pay only for the time you're actively generating, rather than running a hot GPU 24/7.",
+      },
+    ],
+  },
+
+  {
+    slug: "run-deepseek-cloud-gpu-2025",
+    title: "How to Run DeepSeek R1 & V3 on Cloud GPU (Cheapest Options 2025)",
+    description:
+      "DeepSeek R1 and V3 are among the most capable open-source models but require serious GPU memory. Here's how to run them affordably on cloud GPUs without paying OpenAI prices.",
+    date: "2026-04-01",
+    readTime: 8,
+    tags: ["DeepSeek", "LLM Inference", "Cost Optimization", "Open Source"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "DeepSeek R1 and V3 have become the most talked-about open-source models of 2025 — matching or beating GPT-4o on reasoning benchmarks while being freely downloadable. The catch: running them requires serious GPU memory. Here's exactly what you need and how to run them for as little as possible on cloud GPUs.",
+      },
+      {
+        type: "h2",
+        content: "DeepSeek Model Sizes and VRAM Requirements",
+      },
+      {
+        type: "table",
+        headers: ["Model", "Parameters", "VRAM (FP16)", "VRAM (Q4)", "Minimum GPU"],
+        rows: [
+          ["DeepSeek R1 7B", "7B", "~14 GB", "~5 GB", "RTX 4090 or L4 (24 GB)"],
+          ["DeepSeek R1 14B", "14B", "~28 GB", "~10 GB", "A40 or L40S (48 GB) / RTX 4090 for Q4"],
+          ["DeepSeek R1 32B", "32B", "~64 GB", "~22 GB", "A100 80GB (Q4 fits), or 2× A40"],
+          ["DeepSeek R1 70B", "70B", "~140 GB", "~40–70 GB", "2× A100 80GB (Q4) or 1× H100 (Q4)"],
+          ["DeepSeek V3 671B", "671B", "~1.3 TB", "~400 GB", "8× H100 80GB minimum for Q4"],
+        ],
+      },
+      {
+        type: "callout",
+        content:
+          "Q4 quantization cuts VRAM requirements by roughly 60% with minimal quality loss for most tasks. For DeepSeek R1 70B, Q4 brings the requirement from ~140 GB down to ~40–70 GB — fitting on a single A100 80GB.",
+      },
+      {
+        type: "h2",
+        content: "Quantization: Your Most Important Cost Lever",
+      },
+      {
+        type: "p",
+        content:
+          "Before choosing a GPU, choose your quantization level. FP16 gives maximum quality but maximum VRAM usage. INT8 cuts VRAM in half with negligible quality loss for most tasks. Q4_K_M (GGUF format via llama.cpp or Ollama) cuts VRAM by ~60–65% with small quality degradation. For DeepSeek R1's reasoning tasks, INT8 is recommended — Q4 can degrade chain-of-thought coherence on complex problems.",
+      },
+      {
+        type: "h2",
+        content: "Cheapest Cloud GPU Options by Model Size",
+      },
+      {
+        type: "h3",
+        content: "DeepSeek R1 7B and 14B: Consumer GPU Territory",
+      },
+      {
+        type: "p",
+        content:
+          "The 7B model runs in FP16 on a single RTX 4090 (24 GB). The 14B model fits in Q4 on an RTX 4090 or comfortably in FP16 on an A40/L40S. For the cheapest option, Vast.ai RTX 4090 instances start at $0.35/hr — enough to run R1 7B at full quality or R1 14B in Q4.",
+      },
+      {
+        type: "h3",
+        content: "DeepSeek R1 32B: A100 Territory",
+      },
+      {
+        type: "p",
+        content:
+          "The 32B model in Q4 (~22 GB) fits on an RTX 4090, but for INT8 quality you need 48+ GB — an A40 or L40S. In FP16, you need an A100 80GB. RunPod and Vast.ai both offer A100 80GB from $1.49/hr spot, making a full R1 32B inference setup roughly $35–50/day.",
+      },
+      {
+        type: "h3",
+        content: "DeepSeek R1 70B: A100 80GB with Quantization",
+      },
+      {
+        type: "p",
+        content:
+          "R1 70B in Q4 quantization (~40–70 GB) fits on a single A100 80GB. This is the most popular production setup — a single A100 80GB at $1.49–2.20/hr gives you a reasoning model that rivals GPT-4 for about $36–53/day. Use vLLM or llama.cpp for serving.",
+      },
+      {
+        type: "h2",
+        content: "Provider Pricing for DeepSeek Workloads",
+      },
+      {
+        type: "table",
+        headers: ["Provider", "RTX 4090 Price", "A100 80GB Price", "H100 Price", "Best For"],
+        rows: [
+          ["Vast.ai", "$0.35–0.65/hr", "$1.10–1.80/hr", "$1.80–2.80/hr", "R1 7B–32B, lowest cost"],
+          ["RunPod (spot)", "$0.35–0.55/hr", "$0.90–1.49/hr", "$1.20–2.10/hr", "R1 7B–70B with checkpointing"],
+          ["RunPod (on-demand)", "$0.74/hr", "$1.89/hr", "$2.79/hr", "Production inference"],
+          ["Lambda Labs", "Not available", "$1.99/hr", "$2.49/hr", "R1 70B and V3, reliable"],
+          ["Hyperstack", "Not available", "Not available", "$2.29/hr", "V3 multi-GPU, EU data"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "Running DeepSeek V3 (671B): Multi-GPU Only",
+      },
+      {
+        type: "p",
+        content:
+          "DeepSeek V3's 671B parameters require approximately 1.3 TB of VRAM in FP16. Even with aggressive Q4 quantization, you need around 400 GB — that's 5× H100 80GB GPUs minimum, or 8× for comfortable operation with KV cache. A practical setup: 8× H100 SXM5 on Lambda Labs or CoreWeave at $19.92–$22.32/hr, or $478–$535/day.",
+      },
+      {
+        type: "p",
+        content:
+          "For most use cases, the DeepSeek R1 32B or 70B models offer 80–90% of V3's capability at 10–20× lower cost. Unless you specifically need V3's full 671B capability, the distilled R1 models are the practical choice.",
+      },
+      {
+        type: "h2",
+        content: "Recommended Inference Stack",
+      },
+      {
+        type: "ul",
+        items: [
+          "llama.cpp / Ollama: Best for Q4/Q8 quantized models on consumer GPUs (RTX 4090). Easy setup, low overhead.",
+          "vLLM: Best for production serving on A100/H100. Continuous batching, OpenAI-compatible API, highest throughput.",
+          "Transformers (HuggingFace): Best for fine-tuning or custom inference pipelines. FP16/INT8 via bitsandbytes.",
+          "TensorRT-LLM: Best for maximum H100 throughput. Complex setup but 2–3× faster than vLLM for high-concurrency serving.",
+        ],
+      },
+      {
+        type: "cta",
+        content: "Find the cheapest A100 or H100 to run DeepSeek R1",
+        href: "/gpu/NVIDIA%20H100",
+        label: "Compare H100 Prices →",
+      },
+      {
+        type: "cta",
+        content: "Browse all GPU options optimized for inference workloads",
+        href: "/use-case/inference",
+        label: "Inference GPU Comparison →",
+      },
+    ],
+    faqs: [
+      {
+        q: "How much VRAM do I need to run DeepSeek R1?",
+        a: "DeepSeek R1 comes in multiple sizes: the 7B model needs ~14 GB VRAM, 14B needs ~28 GB, 32B needs ~64 GB, and the full 70B needs ~140 GB (or ~70 GB with Q4 quantization). For DeepSeek V3 (671B), you need a multi-GPU cluster — at least 8× A100 80GB or equivalent.",
+      },
+      {
+        q: "What is the cheapest way to run DeepSeek R1 70B?",
+        a: "With Q4 quantization, DeepSeek R1 70B fits in ~40–70 GB VRAM. A single A100 80GB (available from $1.49–$2.20/hr on cloud providers) can run it. For the cheapest option, Vast.ai and RunPod offer A100 instances starting around $1.50/hr. Compare current prices on GPUHunt.",
+      },
+      {
+        q: "Can I run DeepSeek V3 on a single GPU?",
+        a: "No — DeepSeek V3 (671B parameters) requires approximately 1.3 TB of VRAM in fp16. Even with aggressive quantization (Q4), it needs ~400 GB VRAM, requiring multiple high-end GPUs (e.g. 8× H100 80GB). For single-GPU use, the DeepSeek R1 32B or 14B models are practical alternatives.",
+      },
+    ],
+  },
+
+  {
+    slug: "runpod-alternatives-2025",
+    title: "5 RunPod Alternatives That Are Cheaper in 2025",
+    description:
+      "RunPod is popular but not always the cheapest GPU cloud. We compare Vast.ai, Lambda Labs, CoreWeave, Hyperstack, and Salad Cloud as alternatives — with real pricing data.",
+    date: "2026-03-30",
+    readTime: 6,
+    tags: ["Provider Comparison", "RunPod", "Cost Optimization"],
+    sections: [
+      {
+        type: "p",
+        content:
+          "RunPod is the go-to GPU cloud for many AI developers — and for good reason. It's easy to use, has excellent GPU variety, and offers both on-demand and spot pricing. But it's not always the cheapest option. Depending on your GPU type and workload, you can save 20–50% by using a different provider. Here are the five best RunPod alternatives with real pricing data.",
+      },
+      {
+        type: "h2",
+        content: "Why Look for a RunPod Alternative?",
+      },
+      {
+        type: "ul",
+        items: [
+          "Cost: RunPod on-demand pricing is 20–40% higher than the cheapest alternatives for many GPU types",
+          "EU data residency: RunPod is primarily US-based; some alternatives have EU-only infrastructure",
+          "Reliability SLAs: RunPod's marketplace model means host quality varies; some alternatives offer enterprise SLAs",
+          "Specific GPU availability: RunPod may not have the exact GPU you need at the moment you need it",
+          "Reserved pricing: RunPod is pay-as-you-go; some alternatives offer long-term discounts",
+        ],
+      },
+      {
+        type: "h2",
+        content: "Price Comparison: RunPod vs 5 Alternatives",
+      },
+      {
+        type: "table",
+        headers: ["Provider", "RTX 4090", "A100 80GB", "H100 SXM5", "Notes"],
+        rows: [
+          ["RunPod (on-demand)", "$0.74/hr", "$1.89/hr", "$2.79/hr", "Baseline — reliable, easy UX"],
+          ["Vast.ai", "$0.35–0.65/hr", "$1.10–1.80/hr", "$1.80–2.80/hr", "20–40% cheaper, P2P marketplace"],
+          ["Lambda Labs", "Not available", "$1.99/hr", "$2.49/hr", "Better H100 pricing, 99.9% SLA"],
+          ["CoreWeave", "Not available", "$2.06/hr", "$2.79/hr", "Enterprise focus, InfiniBand clusters"],
+          ["Hyperstack", "Not available", "Not available", "$2.29/hr", "EU-based, H100 NVL 94GB"],
+          ["Salad Cloud", "$0.10–0.25/hr", "Not available", "Not available", "Consumer GPUs, interruptible only"],
+        ],
+      },
+      {
+        type: "h2",
+        content: "1. Vast.ai — Best for Consumer GPUs",
+      },
+      {
+        type: "p",
+        content:
+          "Vast.ai is a peer-to-peer GPU marketplace where individual hosts list their hardware. This competition drives prices significantly below RunPod for consumer GPUs — RTX 4090 instances can be found for $0.35–0.50/hr vs RunPod's $0.74/hr on-demand. The trade-off: reliability depends on the host. Filter by hosts with 99%+ reliability and 50+ rentals for safe operation.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pros: Lowest prices for consumer GPUs, excellent search/filter UI, wide hardware variety",
+          "Cons: Variable reliability, can be interrupted, less polished than RunPod",
+          "Best for: Development, experiments, batch jobs with checkpointing, cheap inference",
+        ],
+      },
+      {
+        type: "h2",
+        content: "2. Lambda Labs — Best Reliability for H100",
+      },
+      {
+        type: "p",
+        content:
+          "Lambda Labs offers H100 SXM5 at $2.49/hr — cheaper than RunPod's $2.79/hr on-demand — with a 99.9% uptime SLA and purpose-built AI infrastructure. They don't offer consumer GPUs, but for H100 and A100 workloads requiring reliability, Lambda Labs is the best value. Reserved 1-month contracts available at modest discount.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pros: Best H100 on-demand pricing, 99.9% SLA, excellent uptime, good developer experience",
+          "Cons: No consumer GPUs, no spot pricing, limited GPU variety",
+          "Best for: Long H100 training runs where reliability matters",
+        ],
+      },
+      {
+        type: "h2",
+        content: "3. CoreWeave — Best for Large Clusters",
+      },
+      {
+        type: "p",
+        content:
+          "CoreWeave specializes in large-scale GPU clusters with InfiniBand interconnects — the right choice when you need 32–256 GPUs for distributed training. Their A100 and H100 pricing is comparable to RunPod, but with enterprise-grade infrastructure, dedicated account managers, and compliance certifications (SOC 2, ISO 27001). For startups doing serious pre-training, CoreWeave is the standard choice.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pros: Large GPU clusters, InfiniBand fabric, enterprise SLAs, compliance certifications",
+          "Cons: Minimum commitment requirements, less suitable for small-scale or dev use",
+          "Best for: Production training at scale (32+ GPUs), enterprise AI infrastructure",
+        ],
+      },
+      {
+        type: "h2",
+        content: "4. Hyperstack — Best for EU Data Residency",
+      },
+      {
+        type: "p",
+        content:
+          "Hyperstack operates GPU infrastructure in Iceland and the Netherlands, making it the top choice for European AI teams with data residency requirements. Their H100 NVL 94GB (larger VRAM than standard H100 SXM5's 80GB) is priced at $2.29/hr — cheaper than RunPod's H100 offering while providing more VRAM. GDPR-compliant infrastructure with ISO 27001 certification.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pros: EU data residency, H100 NVL 94GB at $2.29/hr, GDPR compliant",
+          "Cons: Limited GPU variety, primarily H100 focused, smaller provider ecosystem",
+          "Best for: EU-based teams, GDPR-sensitive workloads, H100 NVL at competitive pricing",
+        ],
+      },
+      {
+        type: "h2",
+        content: "5. Salad Cloud — Best for Ultra-Cheap Interruptible Workloads",
+      },
+      {
+        type: "p",
+        content:
+          "Salad Cloud is unique: it's a network of consumer gaming PCs that are idle when their owners aren't gaming. This means RTX 4090 and RTX 3090 instances for $0.10–0.25/hr — 3–5× cheaper than RunPod's marketplace prices. The massive catch: high interruption rates. Salad is only suitable for workloads with aggressive checkpointing and retry logic.",
+      },
+      {
+        type: "ul",
+        items: [
+          "Pros: Extremely cheap ($0.10–0.25/hr for RTX 4090), large pool of consumer GPUs",
+          "Cons: Very high interruption rate (not suitable for uninterrupted long jobs), limited enterprise features",
+          "Best for: Batch inference with retry logic, distributed jobs tolerant of node failures, maximum cost savings",
+        ],
+      },
+      {
+        type: "h2",
+        content: "When to Stick with RunPod",
+      },
+      {
+        type: "p",
+        content:
+          "Despite these alternatives, RunPod remains the best default for most developers. Its serverless GPU product (pay per request, not per hour) is unmatched for bursty inference APIs. Its pod marketplace has better H100 cluster availability than Vast.ai. And the developer experience — templates, Jupyter, team workspaces, pod networking — is the most polished in the market.",
+      },
+      {
+        type: "table",
+        headers: ["Use Case", "Recommended Provider", "Why"],
+        rows: [
+          ["Cheapest RTX 4090 for experiments", "Vast.ai", "20–40% cheaper than RunPod"],
+          ["H100 on-demand with reliability", "Lambda Labs", "$2.49/hr vs RunPod's $2.79/hr + 99.9% SLA"],
+          ["Large GPU clusters (32+)", "CoreWeave", "InfiniBand, enterprise SLAs"],
+          ["EU data residency", "Hyperstack", "GDPR compliant, H100 NVL 94GB"],
+          ["Maximum savings, interruptible", "Salad Cloud", "RTX 4090 from $0.10/hr"],
+          ["Serverless inference API", "RunPod", "Best serverless GPU product"],
+          ["General AI development", "RunPod", "Best overall DX, widest GPU selection"],
+        ],
+      },
+      {
+        type: "cta",
+        content: "Compare live GPU prices across all providers including RunPod alternatives",
+        href: "/servers",
+        label: "Browse All GPU Providers →",
+      },
+    ],
+    faqs: [
+      {
+        q: "What is cheaper than RunPod?",
+        a: "Vast.ai is typically 20–40% cheaper than RunPod for consumer GPUs (RTX 3090, 4090) due to peer-to-peer pricing. Salad Cloud is extremely cheap for interruptible GPU workloads. For datacenter GPUs, Hyperstack and Lambda Labs often beat RunPod on H100 and A100 pricing. GPUHunt compares all providers live.",
+      },
+      {
+        q: "Is Vast.ai better than RunPod?",
+        a: "Vast.ai is cheaper but less reliable — instances can be terminated by the host. RunPod offers better uptime guarantees and a more polished developer experience. Choose Vast.ai for experiments and cheap inference; choose RunPod for long training runs where stability matters.",
+      },
+      {
+        q: "What is the cheapest GPU cloud provider?",
+        a: "For consumer GPUs, Vast.ai and Salad Cloud are typically the cheapest. For datacenter GPUs (H100, A100), Hyperstack and Lambda Labs compete on price. The cheapest option changes frequently — GPUHunt tracks live prices across 20+ providers so you can always find the current best deal.",
       },
     ],
   },

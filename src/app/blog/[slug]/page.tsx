@@ -69,6 +69,17 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const otherPosts = BLOG_POSTS.filter((p) => p.slug !== slug).slice(0, 3);
 
+  // FAQ schema — shows expandable Q&As directly in Google search results (rich snippets)
+  const faqLd = post.faqs && post.faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: post.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: faq.a },
+    })),
+  } : null;
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <script
@@ -79,6 +90,12 @@ export default async function BlogPostPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
       />
+      {faqLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      )}
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-xs mb-8" style={{ color: "var(--text-muted)" }}>
@@ -244,6 +261,25 @@ export default async function BlogPostPage({ params }: PageProps) {
           return null;
         })}
       </article>
+
+      {/* FAQ section — rendered visually AND as JSON-LD for Google rich snippets */}
+      {post.faqs && post.faqs.length > 0 && (
+        <div className="mt-12 pt-10" style={{ borderTop: "1px solid var(--border)" }}>
+          <h2 className="text-lg font-bold text-white mb-6">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {post.faqs.map((faq, i) => (
+              <div
+                key={i}
+                className="rounded-lg p-5"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              >
+                <p className="font-semibold text-sm text-white mb-2">{faq.q}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Related posts */}
       {otherPosts.length > 0 && (
