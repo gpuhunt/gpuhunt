@@ -26,6 +26,10 @@ export default async function ServersPage({ searchParams }: PageProps) {
     sort_by:       (params.sort_by as ServerFilters["sort_by"]) || "price_monthly",
     sort_order:    (params.sort_order as "asc" | "desc") || "asc",
     available_only: true,
+    // Show cheapest-per-(provider, GPU model) by default so marketplace providers
+    // (e.g. Vast.ai with 200+ peer-to-peer listings) don't flood the table.
+    // When a specific provider is selected, show all their individual configs.
+    deduplicate: !params.provider,
     limit: 200,
   };
 

@@ -120,15 +120,43 @@ export function getServers(filters: ServerFilters = {}): ServerWithProvider[] {
   const limit = filters.limit || 100;
   const offset = filters.offset || 0;
 
-  const sql = `
-    SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
-           p.affiliate_url as provider_affiliate_url
-    FROM servers s
-    JOIN providers p ON s.provider_id = p.id
-    ${where}
-    ORDER BY s.${sortCol} ${sortDir} NULLS LAST
-    LIMIT ? OFFSET ?
-  `;
+  let sql: string;
+  if (filters.deduplicate) {
+    // Return only the cheapest row per (provider_id, gpu_model) pair.
+    // Uses a window function to rank rows within each partition, then filters
+    // to rank=1. This prevents marketplace providers (e.g. Vast.ai) with
+    // hundreds of identical-GPU listings from dominating the results.
+    sql = `
+      SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
+             p.affiliate_url as provider_affiliate_url
+      FROM servers s
+      JOIN providers p ON s.provider_id = p.id
+      WHERE s.id IN (
+        SELECT id FROM (
+          SELECT s2.id,
+                 ROW_NUMBER() OVER (
+                   PARTITION BY s2.provider_id, s2.gpu_model
+                   ORDER BY s2.${sortCol} ${sortDir} NULLS LAST
+                 ) AS rn
+          FROM servers s2
+          JOIN providers p2 ON s2.provider_id = p2.id
+          ${where}
+        ) ranked WHERE rn = 1
+      )
+      ORDER BY s.${sortCol} ${sortDir} NULLS LAST
+      LIMIT ? OFFSET ?
+    `;
+  } else {
+    sql = `
+      SELECT s.*, p.name as provider_name, p.slug as provider_slug, p.website as provider_website,
+             p.affiliate_url as provider_affiliate_url
+      FROM servers s
+      JOIN providers p ON s.provider_id = p.id
+      ${where}
+      ORDER BY s.${sortCol} ${sortDir} NULLS LAST
+      LIMIT ? OFFSET ?
+    `;
+  }
 
   params.push(limit, offset);
   return db.prepare(sql).all(...params) as ServerWithProvider[];
@@ -180,11 +208,24 @@ export function getServerCount(filters: ServerFilters = {}): number {
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sql = `
-    SELECT COUNT(*) as count FROM servers s
-    JOIN providers p ON s.provider_id = p.id
-    ${where}
-  `;
+  let sql: string;
+  if (filters.deduplicate) {
+    sql = `
+      SELECT COUNT(*) as count FROM (
+        SELECT 1
+        FROM servers s
+        JOIN providers p ON s.provider_id = p.id
+        ${where}
+        GROUP BY s.provider_id, s.gpu_model
+      )
+    `;
+  } else {
+    sql = `
+      SELECT COUNT(*) as count FROM servers s
+      JOIN providers p ON s.provider_id = p.id
+      ${where}
+    `;
+  }
 
   const row = db.prepare(sql).get(...params) as { count: number };
   return row.count;

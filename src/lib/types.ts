@@ -58,6 +58,10 @@ export interface ServerFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  /** When true, return only the cheapest row per (provider, gpu_model) pair.
+   *  Prevents peer-to-peer marketplaces (e.g. Vast.ai with 200+ listings)
+   *  from dominating the default sorted view. */
+  deduplicate?: boolean;
 }
 
 export interface ScraperResult {
